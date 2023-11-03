@@ -310,6 +310,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     
     WebClient webClient = WebClient.builder()
         .baseUrl(baseUrl)
+        .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(-1))
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
         .build();
     

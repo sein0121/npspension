@@ -1,6 +1,7 @@
 package com.nps.pension.ctl;
 
 import com.nps.pension.svc.AiocrMainSvc;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -12,6 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 @Controller
@@ -85,7 +90,17 @@ public class AiocrMainCtl {
     aiocrMainSvc.callCallbackUrl(requestId, result, request);
     
     // 3. 서버에 저장 된 파일 삭제 (INPUT, OUTPUT)
-    // TODO 개발 필요
+    File inputFolder = new File("/data/twinreader/data/input/" + requestId + "/");
+    if(inputFolder.exists()) {
+      FileUtils.cleanDirectory(inputFolder);
+      inputFolder.delete();
+    }
+    
+    File outputFolder = new File("/data/twinreader/data/output/" + requestId + "/");
+    if(outputFolder.exists()) {
+      FileUtils.cleanDirectory(outputFolder);
+      outputFolder.delete();
+    }
     
     Logger.info("##### getOcrResult END #####");
   }

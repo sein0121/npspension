@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aipct-nps-pension
+spec:
+  externalIPs:
+  - 192.168.100.210
+  ports:
+  - port: 9100
+    targetPort: 9000
+  selector:
+    app: aipct-nps-pension
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aipct-nps-pension-deployment
+  labels:
+    app: aipct-nps-pension
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aipct-nps-pension
+  template:
+    metadata:
+      labels:
+        app: aipct-nps-pension
+    spec:
+      containers:
+      - name: aipct-nps-pension
+        image: aipct-npspension:0.1
+        volumeMounts:
+        - name: files-volume
+          mountPath: /data/twinreader
+      volumes:
+      - name: files-volume
+        hostPath:
+          path: /data/twinreader
+          type: Directory
