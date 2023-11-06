@@ -1,5 +1,6 @@
 package com.nps.pension.svc;
 
+import com.nps.pension.config.WebClientUtil;
 import com.nps.pension.dto.NpsPen0001DTO;
 import com.nps.pension.dto.NpsPen0002DTO;
 import com.nps.pension.dto.NpsPenHistoryDTO;
@@ -10,12 +11,8 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
@@ -36,6 +33,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
   @Autowired
   SqlSessionTemplate sqlSessionTemplate;
   
+  @Autowired
+  WebClientUtil webClientUtil;
+  
   /**
    * 요청받은 파일 적재 후 분석 요청
    * @param requestId
@@ -49,10 +49,6 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     // 현재 시간
     LocalDateTime now = LocalDateTime.now();
     String formatNow  = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-    
-    // 현재 서버 IP, WebClient 객체 생성
-    String serverIp = request.getRemoteAddr();
-    WebClient webClient = setWebClient(request, "http://"+serverIp+":8080");
     
     // 1. DB NPSPEN0001, NPSPEN0002 PARAM SET
     Logger.info("1. DB NPSPEN0001, NPSPEN0002 PARAM SET");
@@ -96,12 +92,12 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       JSONArray jsonArray = new JSONArray();
       jsonArray.add("/"+requestId+"/");
       jsonObject.put("images", jsonArray);
-      JSONObject delApiResult = webClient.method(HttpMethod.DELETE)
-          .uri("/twinreader-mgr-service/api/v1/analysis/deleteImageData")
-          .bodyValue(jsonObject)
-          .retrieve()
-          .bodyToMono(JSONObject.class)
-          .block();
+      JSONObject delApiResult = webClientUtil.delete(
+          "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v1/analysis/deleteImageData"
+          , jsonObject
+          , JSONObject.class
+      );
+      
     } catch(Exception error) {
       Logger.error("##### AIOCR RequestID DB DELETE FAILED " + error.getMessage());
       throw new Exception("AIOCR RequestID DB DELETE FAILED");
@@ -115,14 +111,12 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       analysisArr.add("/"+requestId+"/");
       analysisObj.put("images", analysisArr);
       analysisObj.put("requestId", requestId);
-      analysisObj.put("callbackUrl", "http://"+serverIp+":9100/api/v1/aiocr/getOcrResult");
-      JSONObject loadAnalysis = webClient.post()
-          .uri("/twinreader-mgr-service/api/v1/analysis/inference/reqId")
-          .contentType(MediaType.APPLICATION_JSON)
-          .bodyValue(analysisObj)
-          .retrieve()
-          .bodyToMono(JSONObject.class)
-          .block();
+      analysisObj.put("callbackUrl", "http://"+request.getRemoteAddr()+":9100/api/v1/aiocr/getOcrResult");
+      JSONObject loadAnalysis = webClientUtil.post(
+          "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v1/analysis/inference/reqId"
+          , analysisObj
+          , JSONObject.class
+      );
     } catch(Exception error) {
       Logger.error("##### AIOCR Analysis FAILED " + error.getMessage());
       throw new Exception("AIOCR Analysis FAILED");
@@ -145,10 +139,6 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     // 현재 시간
     LocalDateTime now = LocalDateTime.now();
     String formatNow  = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-    
-    // 현재 서버 IP, WebClient 객체 생성
-    String serverIp = request.getRemoteAddr();
-    WebClient webClient = setWebClient(request, "http://"+serverIp+":8080");
     
     // 1. DB NPSPEN0001, NPSPEN0002 PARAM SET
     Logger.info("1. DB NPSPEN0001, NPSPEN0002 PARAM SET");
@@ -180,12 +170,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         
         JSONObject tmpObj = new JSONObject();
         
-        Logger.info("##### jsonObj : " + jsonObj);
         Iterator pages = jsonObj.keySet().iterator();
         while(pages.hasNext()) {
           String pageNum = pages.next().toString();
-          Logger.info("##### pageNum : " + pageNum);
-          
           JSONObject pageObj  = (JSONObject) jsonObj.get(pageNum);
           JSONObject metaData  = (JSONObject) pageObj.get("metaData");
           
@@ -271,9 +258,6 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     LocalDateTime now = LocalDateTime.now();
     String formatNow  = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     
-    // 현재 서버 IP
-    String serverIp = request.getRemoteAddr();
-    
     // 1. 요청에 대한 DB 값 가져오기 (CALLBACK_URL)
     Logger.info("1. 요청에 대한 DB 값 가져오기 (CALLBACK_URL)");
     HashMap<String, Object> selectParam = new HashMap<>();
@@ -282,13 +266,12 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     Logger.info("##### selectAipct0001 : " + callbackUrl);
     
     // 2. CallbackUrl 호출, WebClient 객체 생성
-    WebClient webClient = setWebClient(request, callbackUrl);
     Logger.info("2. CallbackUrl 호출");
-    JSONObject callbackResult = webClient.method(HttpMethod.POST)
-        .bodyValue(new JSONObject(result))
-        .retrieve()
-        .bodyToMono(JSONObject.class)
-        .block();
+    JSONObject callbackResult = webClientUtil.post(
+        callbackUrl
+        , new JSONObject(result)
+        , JSONObject.class
+    );
     
     // 3. DB NPSPEN0001 UPDATE
     Logger.info("3. DB NPSPEN0001 UPDATE");
@@ -299,22 +282,6 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     
     Logger.info("##### CallbackUrl 호출 결과 : " + callbackResult);
     
-  }
-  
-  /**
-   * WebClient 생성
-   * @param request
-   * @return WebClient
-   */
-  public WebClient setWebClient(HttpServletRequest request, String baseUrl) {
-    
-    WebClient webClient = WebClient.builder()
-        .baseUrl(baseUrl)
-        .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(-1))
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-        .build();
-    
-    return webClient;
   }
   
 }
