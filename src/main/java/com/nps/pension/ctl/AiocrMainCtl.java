@@ -6,6 +6,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,22 @@ public class AiocrMainCtl {
   
   @Resource(name = "aiocrMainSvc")
   private AiocrMainSvc aiocrMainSvc;
+  
+  @Value("${luna.test}")
+  String testValue;
+  
+  @RequestMapping(value="/test", method = RequestMethod.GET)
+  @ResponseBody
+  public HashMap<String, Object> test() {
+    HashMap<String, Object> result = new HashMap<String, Object>();
+    
+    result.put("rsp_code", HttpStatus.OK);
+    result.put("rsp_msg", "success");
+    
+    result.put("testValue", testValue);
+    
+    return result;
+  }
   
   @RequestMapping(value = "/loadAiocrProgram", method = RequestMethod.POST)
   @ResponseBody
