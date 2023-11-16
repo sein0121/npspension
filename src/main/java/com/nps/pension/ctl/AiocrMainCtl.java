@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 @Controller
 @RequestMapping("/api/v1/aiocr")
-@CrossOrigin(origins = "*")         // LUNA - CORS 오류 해결을 위해 작성
+@CrossOrigin(origins = "*")
 public class AiocrMainCtl {
   
   private static final Logger Logger = LoggerFactory.getLogger(AiocrMainCtl.class);
@@ -26,16 +26,12 @@ public class AiocrMainCtl {
   @Resource(name = "aiocrMainSvc")
   private AiocrMainSvc aiocrMainSvc;
   
-  @RequestMapping(value="/", method = RequestMethod.GET)
-  public String webTest() {
-    return "index";
-  }
-  
   @RequestMapping(value = "/loadAiocrProgram", method = RequestMethod.POST)
   @ResponseBody
   public HashMap<String, Object> loadAiocrProgram(
       @RequestParam(value = "requestId") String requestId
       , @RequestParam(value = "callbackUrl") String callbackUrl
+      , @RequestParam(value = "format", required = false) String format
       , @RequestParam(value = "ocrFiles") MultipartFile[] ocrFiles
       , HttpServletRequest request) throws Exception {
     
@@ -43,7 +39,7 @@ public class AiocrMainCtl {
     HashMap<String, Object> result = new HashMap<String, Object>();
     
     try {
-      aiocrMainSvc.setOcrProcess(requestId, callbackUrl, ocrFiles, request);
+      aiocrMainSvc.setOcrProcess(requestId, callbackUrl, format, ocrFiles, request);
       
       result.put("rsp_code", HttpStatus.OK);
       result.put("rsp_msg", "success");
@@ -87,6 +83,7 @@ public class AiocrMainCtl {
     aiocrMainSvc.callCallbackUrl(requestId, result, request);
     
     // 3. 서버에 저장 된 파일 삭제 (INPUT, OUTPUT)
+    /*
     File inputFolder = new File("/data/twinreader/data/input/" + requestId + "/");
     if(inputFolder.exists()) {
       FileUtils.cleanDirectory(inputFolder);
@@ -98,6 +95,7 @@ public class AiocrMainCtl {
       FileUtils.cleanDirectory(outputFolder);
       outputFolder.delete();
     }
+    */
     
     Logger.info("##### getOcrResult END #####");
   }

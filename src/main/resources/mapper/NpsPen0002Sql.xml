@@ -11,10 +11,9 @@
 
   <insert id="insertNpsPen0002">
     <![CDATA[
-      INSERT INTO NPSPEN0002 (REQUEST_ID, REQ_DT, FILE_NM, PAGE_NUM, CATEGORY, PRO_STATUS, REG_DT)
+      INSERT INTO NPSPEN0002 (REQUEST_ID, FILE_NM, PAGE_NUM, CATEGORY, PRO_STATUS, REG_DT)
       VALUES (
         #{requestId}
-        , #{reqDt}
         , #{fileNm}
         , #{pageNum}
         , #{category}
@@ -29,12 +28,11 @@
       INSERT INTO NPSPEN0002
       VALUES (
         #{requestId},
-        (SELECT MAX(REQ_DT) AS REQ_DT FROM NPSPEN0001 WHERE REQUEST_ID = #{requestId}),
         #{fileNm},
         #{pageNum},
         #{category},
         #{proStatus},
-        (SELECT MAX(REQ_DT) AS REG_DT FROM NPSPEN0001 WHERE REQUEST_ID = #{requestId})
+        #{regDt}
       )
     ]]>
   </insert>
@@ -48,14 +46,6 @@
       WHERE REQUEST_ID = #{requestId}
         AND FILE_NM = #{fileNm}
         AND PAGE_NUM = 0
-        AND REQ_DT = (
-          SELECT REQ_DT FROM (
-           SELECT
-              MAX(REQ_DT) AS REQ_DT
-           FROM NPSPEN0001
-           WHERE REQUEST_ID = #{requestId}
-         ) TMP_TABLE
-      )
     ]]>
   </update>
 

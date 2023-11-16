@@ -44,7 +44,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
    * @param request
    * @throws Exception
    */
-  public void setOcrProcess(String requestId, String callbackUrl, MultipartFile[] ocrFiles, HttpServletRequest request) throws Exception {
+  public void setOcrProcess(String requestId, String callbackUrl, String format, MultipartFile[] ocrFiles, HttpServletRequest request) throws Exception {
     
     // 현재 시간
     LocalDateTime now = LocalDateTime.now();
@@ -54,8 +54,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     Logger.info("1. DB NPSPEN0001, NPSPEN0002 PARAM SET");
     NpsPenHistoryDTO npsPenHistoryDTO = new NpsPenHistoryDTO();
     npsPenHistoryDTO.setRequestId(requestId);
-    npsPenHistoryDTO.setReqDt(formatNow);
     npsPenHistoryDTO.setCallbackUrl(callbackUrl);
+    npsPenHistoryDTO.setFormat(format);
+    npsPenHistoryDTO.setReqDt(formatNow);
     npsPenHistoryDTO.setResDt(formatNow);
     npsPenHistoryDTO.setRegDt(formatNow);
     
@@ -159,9 +160,16 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       Logger.info("2. DB NPSPEN0001, NPSPEN0002 PARAM SET");
       npsPen0002DTO.setFileNm(imageName);
       
-      // 3. 항목 추출 결과 OUTPUT 경로에서 가져오기
-      Logger.info("3. 항목 추출 결과 OUTPUT 경로에서 가져오기");
-      File readFile       = new File(filePath);
+      // 3. 고객사 요청에 대한 DB 값 가져오기 (FORMAT)
+      Logger.info("3. 고객사 요청에 대한 DB 값 가져오기 (FORMAT)");
+      NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
+      npsPen0001DTO.setRequestId(requestId);
+      HashMap<String, Object> selectReqInfo = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectReqInfo", npsPen0001DTO);
+      String format         = (String) selectReqInfo.get("FORMAT");
+      
+      // 4. 항목 추출 결과 OUTPUT 경로에서 가져오기
+      Logger.info("4. 항목 추출 결과 OUTPUT 경로에서 가져오기");
+      File readFile         = new File(filePath);
       if(readFile.getParentFile().exists()) {
         BufferedReader br   = new BufferedReader((new InputStreamReader(new FileInputStream(readFile))));
         String strJson      = br.readLine();
@@ -176,8 +184,8 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
           JSONObject pageObj  = (JSONObject) jsonObj.get(pageNum);
           JSONObject metaData  = (JSONObject) pageObj.get("metaData");
           
-          // 4. DB NPSPEN0002 UPDATE or INSERT
-          Logger.info("4. DB NPSPEN0002 UPDATE or INSERT");
+          // 5. DB NPSPEN0002 UPDATE or INSERT
+          Logger.info("5. DB NPSPEN0002 UPDATE or INSERT");
           int pageNumber = Integer.parseInt(pageNum.replace("Page", ""));
           npsPen0002DTO.setPageNum(pageNumber);
           npsPen0002DTO.setCategory((String) metaData.get("classification"));
@@ -193,11 +201,16 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
             sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
           }
           
-          // 5. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
-          Logger.info("5. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
+          // 6. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
+          Logger.info("6. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
           pageObj.remove("metaData");
           pageObj.remove("version");
           pageObj.remove("requestMetaData");
+          if("simple".equals(format)) pageObj.remove("values");
+          
+          // 7. 페이지 별 카테고리 정보 추가
+          Logger.info("7. 페이지 별 카테고리 정보 추가");
+          pageObj.put("category", metaData.get("classification"));
           
           tmpObj.put(pageNum, pageObj);
         }
@@ -206,8 +219,8 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         ocrObj.put("fileResult", tmpObj);
         ocrResult.add(ocrObj);
       } else {
-        // 6. DB NPSPEN0002 UPDATE
-        Logger.info("6. DB NPSPEN0002 UPDATE");
+        // 8. DB NPSPEN0002 UPDATE
+        Logger.info("8. DB NPSPEN0002 UPDATE");
         npsPen0002DTO.setPageNum(0);
         npsPen0002DTO.setCategory("분류실패");
         npsPen0002DTO.setProStatus("failed");
@@ -219,8 +232,8 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       }
     }
     
-    // 7. 실패 건에 대해 처리
-    Logger.info("7. 실패 건에 대해 처리");
+    // 9. 실패 건에 대해 처리
+    Logger.info("9. 실패 건에 대해 처리");
     ArrayList failInfoList = (ArrayList) reqBody.get("failInfoList");
     for(int i=0; i<failInfoList.size(); i++) {
       JSONObject ocrObj   = new JSONObject();
@@ -228,8 +241,8 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       String imagePath    = (String) successPathList.get(i);
       String imageName    = imagePath.replace("/" + requestId + "/", "");
       
-      // 8. DB NPSPEN0002 UPDATE
-      Logger.info("8. DB NPSPEN0002 UPDATE");
+      // 10. DB NPSPEN0002 UPDATE
+      Logger.info("10. DB NPSPEN0002 UPDATE");
       npsPen0002DTO.setFileNm(imageName);
       npsPen0002DTO.setPageNum(0);
       npsPen0002DTO.setCategory("분류실패");
@@ -258,25 +271,26 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     LocalDateTime now = LocalDateTime.now();
     String formatNow  = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     
-    // 1. 요청에 대한 DB 값 가져오기 (CALLBACK_URL)
-    Logger.info("1. 요청에 대한 DB 값 가져오기 (CALLBACK_URL)");
-    HashMap<String, Object> selectParam = new HashMap<>();
-    selectParam.put("requestId", requestId);
-    String callbackUrl = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectCallbackUrl", selectParam);
-    Logger.info("##### selectAipct0001 : " + callbackUrl);
+    // 1. DB NPSPEN0001 PARAM SET
+    Logger.info("1. DB NPSPEN0001 PARAM SET");
+    NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
+    npsPen0001DTO.setRequestId(requestId);
     
-    // 2. CallbackUrl 호출, WebClient 객체 생성
-    Logger.info("2. CallbackUrl 호출");
+    // 2. 고객사 요청에 대한 DB 값 가져오기 (CALLBACK_URL)
+    Logger.info("2. 고객사 요청에 대한 DB 값 가져오기 (CALLBACK_URL)");
+    HashMap<String, Object> selectReqInfo = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectReqInfo", npsPen0001DTO);
+    String callbackUrl    = (String) selectReqInfo.get("CALLBACK_URL");
+    
+    // 3. CallbackUrl 호출, WebClient 객체 생성
+    Logger.info("3. CallbackUrl 호출");
     JSONObject callbackResult = webClientUtil.post(
         callbackUrl
         , new JSONObject(result)
         , JSONObject.class
     );
     
-    // 3. DB NPSPEN0001 UPDATE
-    Logger.info("3. DB NPSPEN0001 UPDATE");
-    NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
-    npsPen0001DTO.setRequestId(requestId);
+    // 4. DB NPSPEN0001 UPDATE
+    Logger.info("4. DB NPSPEN0001 UPDATE");
     npsPen0001DTO.setResDt(formatNow);
     sqlSessionTemplate.update("NpsPen0001Sql.updateNpsPen0001", npsPen0001DTO);
     

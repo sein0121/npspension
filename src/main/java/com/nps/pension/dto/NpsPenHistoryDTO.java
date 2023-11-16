@@ -10,10 +10,11 @@ import lombok.Setter;
 public class NpsPenHistoryDTO {
   
   public String requestId;    // PK 리퀘스트ID
-  public String reqDt;        // PK 요청일시
   
   // NPSPEN0001
   public String callbackUrl;  // 콜백URL
+  public String format;       // 포멧구조
+  public String reqDt;        // 요청일시
   public String resDt;        // 처리일시
   
   // NPSPEN0002
