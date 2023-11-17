@@ -1,0 +1,251 @@
+<html>
+<head>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <link rel="shortcut icon" href="/readFile/static/images/whaleIcon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;300&display=swap" rel="stylesheet">
+
+  <style>
+      body {
+          font-family: 'Noto R';
+          background-color: rgb(250, 250, 250);
+      }
+      input {
+          font-family: 'Noto R';
+          color: #0e0e0e;
+          accent-color: #CFF4EC;
+          background-color: rgb(250, 250, 250);
+          border : 1px solid #dddddd;
+          border-radius: 5px;
+          padding-left: 7.5px;
+          cursor: pointer;
+      }
+      input:hover {
+          background-color: #ffffff;
+      }
+      select {
+          font-family: 'Noto R';
+          color: #0e0e0e;
+          background-color: rgb(250, 250, 250);
+          border : 1px solid #dddddd;
+          border-radius: 5px;
+          cursor: pointer;
+      }
+      select:hover {
+          border-color: #CFF4EC;
+          cursor: pointer;
+      }
+      table {
+          color: #0e0e0e;
+          border : 1px solid #dddddd;
+          border-collapse: collapse;
+          border-radius: 5px;
+          background-color: white;
+      }
+      tr{
+          border-bottom : 1px solid #dddddd;
+          height : 2em;
+      }
+      td {
+          margin-top: 5px;
+          margin-bottom: 5px;
+      }
+      thead tr th {
+          background-color: #CFF4EC;
+          color: #0e0e0e;
+          position: sticky;
+          top: 0px;
+          margin-top: 5px;
+          margin-bottom: 5px;
+      }
+      a {
+          color: #10C7A2;
+      }
+      a:hover {
+          color: #0e0e0e;
+      }
+
+      .infoTable {
+          border : 1px solid rgb(250, 250, 250);
+          background-color: rgb(250, 250, 250);
+      }
+      .infoTr {
+          border-bottom : 1px solid rgb(250, 250, 250);
+      }
+      .btn {
+          color: rgb(150, 150, 150);
+          height: 23.5px;
+          margin-left: 5px;
+          border-radius: 10px;
+          border: 1px solid #dddddd;
+          border-color: #dddddd;
+          background-color: #ffffff;
+          cursor: pointer;
+      }
+      .btn:hover {
+          color: #0e0e0e;
+          font-weight: bold;
+          background-color: #CFF4EC;
+      }
+      .categoryT {
+          vertical-align: middle;
+          display: inline-block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+      }
+      .ellipsis {
+          vertical-align: middle;
+          display: inline-block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+      }
+      .imgViewer {
+          max-width: 600px;
+          max-height: 100%;
+          overflow: hidden;
+      }
+      img {
+          max-width: 600px;
+          max-height: 90%;
+      }
+  </style>
+</head>
+
+<body style="padding: 0px 2em;">
+  <div style="width:100%; height:100%; overflow: hidden;">
+    <!-- 상단 데이터 -->
+    <div style="width:100%; height: 150px;">
+      <h2>분석요청</h2>
+      <div style="width:100%; height:100%;">
+        <table class="infoTable" id="requestInfo" style="width:60%; padding-bottom: 5%;">
+          <tr class="infoTr">
+            <td style="width: 20%; min-width:130px;">
+              <p>
+                포멧여부 : <input type="checkbox" id="formatChk" checked/>
+              </p>
+            </td>
+          </tr>
+          <tr class="infoTr">
+            <td style="width: 20%; min-width:300px;">
+              <p>
+                리퀘스트ID : <input style="height:22.5px; cursor: text;" id="requestId"/>
+              </p>
+            </td>
+            <td style="width: 20%; min-width:350px;">
+              <input type="file" id="fileInput" multiple>
+              <button class="btn" type="submit" id="sendButton">전송</button>
+            </td>
+          </tr>
+          <tr class="infoTr">
+
+          </tr>
+        </table>
+      </div>
+    </div>
+    <!-- 표데이터 -->
+    <div style="width:900px; height: 80%;">
+      <div style="width: 350px; height: 90%; overflow:scroll; overflow-x:hidden; overflow-y:auto; scrollbar-width: none; float:left;">
+        <table id="requestResult" style="width:100%;">
+          <thead>
+          <tr>
+            <th style="width:50px;">No</th>
+            <th style="width:300px;">이미지명</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr style="height:100px">
+            <td style="color:rgb(150, 150, 150); text-align:center; vertical-align: middle;" colspan="6">🐳 이미지를 업로드해주세요 🐳</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="imgViewer" style="width: 500px; height: 90%; overflow:auto; float:right;"></div>
+    </div>
+  </div>
+</body>
+</html>
+
+<script type="text/javascript">
+  let serverNo        = window.location.hostname;
+
+  $(document).on('mouseover', 'table#requestResult tr', function() {
+    if(typeof $('#requestResult>tbody>tr>td').attr('colspan') === 'undefined') $(this).css('background-color', '#EFEFF5');
+  });
+
+  $(document).on('mouseleave', 'table#requestResult tr', function() {
+    if(typeof $('#requestResult>tbody>tr>td').attr('colspan') === 'undefined') $(this).css('background-color', '#FFFFFF');
+  });
+
+  $(document).on('click', '#sendButton', function(e) {
+    let formData = new FormData();
+    formData.append("attachedImage",fileInput.files[0]);
+
+    let files = $('input[type=file]')[0].files;
+    console.log(files);
+
+    let today     = new Date();
+    let requestId = $('#requestId').val();
+    let formatChk = $('#formatChk').is(':checked');
+
+    if(requestId==='')  requestId = "국민연금테스트_"+today.getFullYear()+Number(today.getMonth()+1)+today.getDate()+today.getHours()+today.getMinutes()+today.getSeconds();
+
+    formData.append("requestId", requestId);
+    formData.append("callbackUrl", 'http://'+serverNo+':9100/api/v1/aiocr/callbackTest');
+
+    if(formatChk) formData.append("format", "simple");
+
+    for(let i=0; i<files.length; i++) {
+      formData.append("ocrFiles", files[i]);
+    }
+
+    $.ajax({
+      url : '/api/v1/aiocr/loadAiocrProgram',
+      data: formData,
+      processData : false,
+      contentType : false,
+      type : 'POST',
+      success : function(result) {
+        console.log('성공', result);
+
+        let files = $('input[type=file]')[0].files;
+
+        let tableHTML = '';
+        for(let i=0; i<files?.length; i++) {
+          tableHTML += '<tr style="background-color: white;" tabindex='+i+'>';
+          tableHTML += '  <td class="resultNo"    style="width:50px; text-align:center; vertical-align: middle;">'+Number(i+1)+'</td>';
+          tableHTML += '  <td class="ellipsis"    style="width:300px;" title='+files[i].name+'>'+files[i].name+'</td>';
+          tableHTML += '</tr>';
+        }
+
+        $('table#requestResult>tbody').html(tableHTML);
+
+      },
+      error : function(e) {
+        console.log('처리 실패', e);
+      }
+    });
+  });
+
+  $(document).on('click', 'tr', function(e) {
+    let requestId = $('#requestId').val();
+    let imageName = $(this).find('td[class=ellipsis]').attr('title');
+
+    if(typeof imageName !== 'undefined')
+      $('div.imgViewer').html('<a class="imgHref" href="/readData/input/'+requestId+'/'+imageName+'" target="_blank"><img src="/readData/input/'+requestId+'/'+imageName+'" onLoad={changeImgSize();}></a>');
+  });
+
+  function changeImgSize() {
+    // 이미지 사이즈 조정
+    let width = $('img').width();
+    let height = $('img').height();
+
+    let imgViewerWidth = $('.imgViewer').width();
+    let imgViewerHeight = $('.imgViewer').height();
+
+    if(width > height)  $('img').css('height', imgViewerHeight);
+    else $('img').css('width', imgViewerWidth);
+  }
+</script>

@@ -26,21 +26,10 @@ public class AiocrMainCtl {
   
   @Resource(name = "aiocrMainSvc")
   private AiocrMainSvc aiocrMainSvc;
-  
-  @Value("${luna.test}")
-  String testValue;
-  
-  @RequestMapping(value="/test", method = RequestMethod.GET)
-  @ResponseBody
-  public HashMap<String, Object> test() {
-    HashMap<String, Object> result = new HashMap<String, Object>();
-    
-    result.put("rsp_code", HttpStatus.OK);
-    result.put("rsp_msg", "success");
-    
-    result.put("testValue", testValue);
-    
-    return result;
+
+  @RequestMapping(value="/", method = RequestMethod.GET)
+  public String npsTest() {
+    return "npsTest";
   }
   
   @RequestMapping(value = "/loadAiocrProgram", method = RequestMethod.POST)
