@@ -35,6 +35,26 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
   
   @Autowired
   WebClientUtil webClientUtil;
+
+  /**
+   * 요청받은 RequestID 중복여부 체크
+   * @param requestId
+   * @throws Exception
+   */
+  public void checkRequestId(String requestId) throws Exception {
+
+    // 1. DB NPSPEN0001 PARAM SET
+    Logger.info("1. DB NPSPEN0001 PARAM SET");
+    NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
+    npsPen0001DTO.setRequestId(requestId);
+
+    // 2. NPSPEN0001 테이블 RequestID 개수 조회
+    int reqIdCnt = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectReqIdCnt", npsPen0001DTO);
+
+    // 3. 이 전에 사용 된 RequestID 인 경우 오류 처리
+    if(reqIdCnt > 0) throw new Exception("중복되는 Request ID 입니다.");
+
+  }
   
   /**
    * 요청받은 파일 적재 후 분석 요청

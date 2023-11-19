@@ -45,6 +45,10 @@ public class AiocrMainCtl {
     HashMap<String, Object> result = new HashMap<String, Object>();
     
     try {
+      // 1. RequestID 중복 여부 체크
+      aiocrMainSvc.checkRequestId(requestId);
+
+      // 2. 요청받은 파일 처리
       aiocrMainSvc.setOcrProcess(requestId, callbackUrl, format, ocrFiles, request);
       
       result.put("rsp_code", HttpStatus.OK);

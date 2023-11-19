@@ -9,6 +9,13 @@
     ]]>
   </select>
 
+  <select id="selectReqIdCnt" resultType="int">
+    <![CDATA[
+      SELECT COUNT(*) FROM NPSPEN0001
+      WHERE REQUEST_ID = #{requestId}
+    ]]>
+  </select>
+
   <select id="selectReqInfo" resultType="java.util.HashMap">
     <![CDATA[
       SELECT
