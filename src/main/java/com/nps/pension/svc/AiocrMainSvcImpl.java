@@ -38,6 +38,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
   @Autowired
   WebClientUtil webClientUtil;
   
+  @Value("${server.ip}")
+  String serverIP;
+  
   @Value("${twinreader.version}")
   String twinreaderVersion;
   
@@ -126,7 +129,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       jsonArray.add("/"+requestId+"/");
       jsonObject.put("images", jsonArray);
       JSONObject delApiResult = webClientUtil.delete(
-          "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v1/analysis/deleteImageData"
+          "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/deleteImageData"
           , jsonObject
           , JSONObject.class
       );
@@ -138,10 +141,6 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     
     // 7. 트윈리더 이미지 분석 요청 API 호출
     Logger.info("7. 트윈리더 이미지 분석 요청");
-    
-    Logger.info("##### pipelineName : " + pipelineName);
-    Logger.info("##### clsfGroupID : " + clsfGroupID);
-    
     try {
       JSONObject analysisObj = new JSONObject();
       JSONArray analysisArr = new JSONArray();
@@ -152,9 +151,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("images", analysisArr);
         analysisObj.put("requestId", requestId);
-        analysisObj.put("callbackUrl", "http://"+request.getRemoteAddr()+":9100/api/v1/aiocr/getOcrResult");
+        analysisObj.put("callbackUrl", "http://"+serverIP+":9100/api/v1/aiocr/getOcrResult");
         JSONObject loadAnalysis = webClientUtil.post(
-            "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v1/analysis/inference/reqId"
+            "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/inference/reqId"
             , analysisObj
             , JSONObject.class
         );
@@ -164,13 +163,13 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         Logger.info("7-2. 트윈리더 2.3버전 처리");
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("pathList", analysisArr);
-        analysisObj.put("requestId", requestId);
-        analysisObj.put("callbackUrl", "http://"+request.getRemoteAddr()+":9100/api/v1/aiocr/getOcrResult");
+        analysisObj.put("requestID", requestId);
+        analysisObj.put("callbackUrl", "http://"+serverIP+":9100/api/v1/aiocr/getOcrResult");
         analysisObj.put("pipelineName", pipelineName);
         analysisObj.put("clsfGroupID", clsfGroupID);
         
         JSONObject loadAnalysis = webClientUtil.post(
-            "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v2/flow/twrd"
+            "http://"+serverIP+":8080/twinreader-mgr-service/api/v2/flow/twrd"
             , analysisObj
             , JSONObject.class
         );
@@ -307,7 +306,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       jsonArray.add(imagePath);
       jsonObject.put("images", jsonArray);
       JSONArray analysisResultArr = webClientUtil.post(
-          "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v1/analysis/category"
+          "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/category"
           , jsonObject
           , JSONArray.class
       );
