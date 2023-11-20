@@ -11,6 +11,7 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Objects;
 
 @Service("aiocrMainSvc")
 public class AiocrMainSvcImpl implements  AiocrMainSvc{
@@ -35,6 +37,15 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
   
   @Autowired
   WebClientUtil webClientUtil;
+  
+  @Value("${twinreader.version}")
+  String twinreaderVersion;
+  
+  @Value("${twinreader.analysis.pipelineName}")
+  String pipelineName;
+  
+  @Value("${twinreader.analysis.clsfGroupID}")
+  String clsfGroupID;
 
   /**
    * 요청받은 RequestID 중복여부 체크
@@ -124,20 +135,45 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       throw new Exception("AIOCR RequestID DB DELETE FAILED");
     }
     
-    // 7. 트윈리더 이미지 분석 요청 API 호출 - /twinreader-mgr-service/api/v1/analysis/inference/reqId
+    // 7. 트윈리더 이미지 분석 요청 API 호출
     Logger.info("7. 트윈리더 이미지 분석 요청");
+    
+    Logger.info("##### pipelineName : " + pipelineName);
+    Logger.info("##### clsfGroupID : " + clsfGroupID);
+    
     try {
       JSONObject analysisObj = new JSONObject();
       JSONArray analysisArr = new JSONArray();
-      analysisArr.add("/"+requestId+"/");
-      analysisObj.put("images", analysisArr);
-      analysisObj.put("requestId", requestId);
-      analysisObj.put("callbackUrl", "http://"+request.getRemoteAddr()+":9100/api/v1/aiocr/getOcrResult");
-      JSONObject loadAnalysis = webClientUtil.post(
-          "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v1/analysis/inference/reqId"
-          , analysisObj
-          , JSONObject.class
-      );
+      
+      // 트윈리더 2.2 버전 - /twinreader-mgr-service/api/v1/analysis/inference/reqId
+      if("2.2".equals(twinreaderVersion)) {
+        Logger.info("7-1. 트윈리더 2.2버전 처리");
+        analysisArr.add("/"+requestId+"/");
+        analysisObj.put("images", analysisArr);
+        analysisObj.put("requestId", requestId);
+        analysisObj.put("callbackUrl", "http://"+request.getRemoteAddr()+":9100/api/v1/aiocr/getOcrResult");
+        JSONObject loadAnalysis = webClientUtil.post(
+            "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v1/analysis/inference/reqId"
+            , analysisObj
+            , JSONObject.class
+        );
+      }
+      // 트윈리더 2.3 버전 - /twinreader-mgr-service/api/v2/flow/twrd
+      else {
+        Logger.info("7-2. 트윈리더 2.3버전 처리");
+        analysisArr.add("/"+requestId+"/");
+        analysisObj.put("pathList", analysisArr);
+        analysisObj.put("requestId", requestId);
+        analysisObj.put("callbackUrl", "http://"+request.getRemoteAddr()+":9100/api/v1/aiocr/getOcrResult");
+        analysisObj.put("pipelineName", pipelineName);
+        analysisObj.put("clsfGroupID", clsfGroupID);
+        
+        JSONObject loadAnalysis = webClientUtil.post(
+            "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v2/flow/twrd"
+            , analysisObj
+            , JSONObject.class
+        );
+      }
     } catch(Exception error) {
       Logger.error("##### AIOCR Analysis FAILED " + error.getMessage());
       throw new Exception("AIOCR Analysis FAILED");
