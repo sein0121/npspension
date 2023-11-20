@@ -28,11 +28,13 @@
 
   <insert id="insertNpsPen0001">
     <![CDATA[
-      INSERT INTO NPSPEN0001 (REQUEST_ID, CALLBACK_URL, FORMAT, REQ_DT, RES_DT, REG_DT)
+      INSERT INTO NPSPEN0001 (REQUEST_ID, CALLBACK_URL, FORMAT, PRO_STATUS, PRO_MSG, REQ_DT, RES_DT, REG_DT)
       VALUES (
         #{requestId}
         , #{callbackUrl}
         , #{format}
+        , #{proStatus}
+        , #{proMsg}
         , #{reqDt}
         , #{resDt}
         , #{regDt}
@@ -44,6 +46,8 @@
     <![CDATA[
       UPDATE NPSPEN0001
         SET RES_DT = #{resDt}
+          , PRO_STATUS = #{proStatus}
+          , PRO_MSG = #{proMsg}
       WHERE REQUEST_ID = #{requestId}
     ]]>
   </update>

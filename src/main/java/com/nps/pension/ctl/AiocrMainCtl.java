@@ -27,6 +27,9 @@ public class AiocrMainCtl {
   @Resource(name = "aiocrMainSvc")
   private AiocrMainSvc aiocrMainSvc;
 
+  @Value("${twinreader.output.deleteYn}")
+  String deleteYn;
+  
   @RequestMapping(value="/", method = RequestMethod.GET)
   public String npsTest() {
     return "npsTest";
@@ -93,19 +96,19 @@ public class AiocrMainCtl {
     aiocrMainSvc.callCallbackUrl(requestId, result, request);
     
     // 3. 서버에 저장 된 파일 삭제 (INPUT, OUTPUT)
-    /*
-    File inputFolder = new File("/data/twinreader/data/input/" + requestId + "/");
-    if(inputFolder.exists()) {
-      FileUtils.cleanDirectory(inputFolder);
-      inputFolder.delete();
+    if("true".equals(deleteYn)) {
+      File inputFolder = new File("/data/twinreader/data/input/" + requestId + "/");
+      if(inputFolder.exists()) {
+        FileUtils.cleanDirectory(inputFolder);
+        inputFolder.delete();
+      }
+      
+      File outputFolder = new File("/data/twinreader/data/output/" + requestId + "/");
+      if(outputFolder.exists()) {
+        FileUtils.cleanDirectory(outputFolder);
+        outputFolder.delete();
+      }
     }
-    
-    File outputFolder = new File("/data/twinreader/data/output/" + requestId + "/");
-    if(outputFolder.exists()) {
-      FileUtils.cleanDirectory(outputFolder);
-      outputFolder.delete();
-    }
-    */
     
     Logger.info("##### getOcrResult END #####");
   }

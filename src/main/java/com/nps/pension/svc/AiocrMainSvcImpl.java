@@ -94,6 +94,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     npsPenHistoryDTO.setPageNum(0);        // 항목 추출 후 UPDATE
     npsPenHistoryDTO.setCategory(null);    // 항목 추출 후 UPDATE
     npsPenHistoryDTO.setProStatus(null);   // 항목 추출 후 UPDATE
+    npsPenHistoryDTO.setProMsg(null);      // 항목 추출 후 UPDATE
     
     // 2. 요청에 대한 DB NPSPEN0001 INSERT
     Logger.info("2. 요청에 대한 DB NPSPEN0001 INSERT");
@@ -246,11 +247,12 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
           npsPen0002DTO.setPageNum(pageNumber);
           npsPen0002DTO.setCategory((String) metaData.get("classification"));
           npsPen0002DTO.setProStatus("success");
+          npsPen0002DTO.setProMsg(null);
           
           if(pageNumber > 1) {
-            Logger.info("##### NpsPen0002Sql.insertFileAdd 호출");
+            Logger.info("##### NpsPen0002Sql.insertNpsPen0002 호출");
             Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO.toString());
-            sqlSessionTemplate.insert("NpsPen0002Sql.insertFileAdd", npsPen0002DTO);
+            sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPen0002DTO);
           } else {
             Logger.info("##### NpsPen0002Sql.updateNpsPen0002 호출");
             Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO.toString());
@@ -280,6 +282,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         npsPen0002DTO.setPageNum(0);
         npsPen0002DTO.setCategory("분류실패");
         npsPen0002DTO.setProStatus("failed");
+        npsPen0002DTO.setProMsg(null);
         sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
         
         ocrObj.put("fileNm", imageName);
@@ -297,12 +300,26 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       String imagePath    = (String) successPathList.get(i);
       String imageName    = imagePath.replace("/" + requestId + "/", "");
       
-      // 10. DB NPSPEN0002 UPDATE
-      Logger.info("10. DB NPSPEN0002 UPDATE");
+      // 10. 문서분류 결과 조회 - /twinreader-mgr-service/api/v1/analysis/category
+      Logger.info("10. 문서분류 결과 조회");
+      JSONObject jsonObject = new JSONObject();
+      JSONArray jsonArray   = new JSONArray();
+      jsonArray.add(imagePath);
+      jsonObject.put("images", jsonArray);
+      JSONArray analysisResultArr = webClientUtil.post(
+          "http://"+request.getRemoteAddr()+":8080/twinreader-mgr-service/api/v1/analysis/category"
+          , jsonObject
+          , JSONArray.class
+      );
+      JSONObject analysisResult = (JSONObject) analysisResultArr.get(0);
+      
+      // 11. DB NPSPEN0002 UPDATE
+      Logger.info("11. DB NPSPEN0002 UPDATE");
       npsPen0002DTO.setFileNm(imageName);
       npsPen0002DTO.setPageNum(0);
       npsPen0002DTO.setCategory("분류실패");
-      npsPen0002DTO.setProStatus("failed");
+      npsPen0002DTO.setProStatus((Boolean) analysisResult.get("success") ? "success": "failed");
+      npsPen0002DTO.setProMsg((String) analysisResult.get("message"));
       sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
       
       ocrObj.put("fileNm", imageName);
@@ -312,7 +329,6 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     
     return ocrResult;
   }
-  
   
   /**
    * 고객사 CallBackUrl 호출
