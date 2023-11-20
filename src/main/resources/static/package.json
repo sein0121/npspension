@@ -1,0 +1,25 @@
+{
+  "name": "static",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo Building frontend",
+    "check": "echo Checking frontend && npm run lint && npm run test",
+    "clean": "echo Cleaning frontend",
+    "lint": "echo Linting frontend"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "exceljs": "^4.3.0",
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "jquery": "^3.7.1",
+    "monaco-editor": "^0.44.0",
+    "tiff": "^5.0.3",
+    "xlsx": "^0.18.5"
+  },
+  "author": "LUNA",
+  "license": "ISC"
+}

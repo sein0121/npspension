@@ -1,0 +1,109 @@
+@font-face {
+  font-family: 'Noto R';
+  src: url('/readFile/static/css/fonts/NotoSansKR-Regular.woff') format('woff');
+}
+
+body {
+  font-family: 'Noto R';
+  background-color: rgb(250, 250, 250);
+}
+input {
+  font-family: 'Noto R';
+  color: #0e0e0e;
+  accent-color: #CFF4EC;
+  background-color: rgb(250, 250, 250);
+  border : 1px solid #dddddd;
+  border-radius: 5px;
+  padding-left: 7.5px;
+  cursor: pointer;
+}
+input:hover {
+  background-color: #ffffff;
+}
+select {
+  font-family: 'Noto R';
+  color: #0e0e0e;
+  background-color: rgb(250, 250, 250);
+  border : 1px solid #dddddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+select:hover {
+  border-color: #CFF4EC;
+  cursor: pointer;
+}
+table {
+  color: #0e0e0e;
+  border : 1px solid #dddddd;
+  border-collapse: collapse;
+  border-radius: 5px;
+  background-color: white;
+}
+tr{
+  border-bottom : 1px solid #dddddd;
+  height : 2em;
+}
+td {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+thead tr th {
+  background-color: #CFF4EC;
+  color: #0e0e0e;
+  position: sticky;
+  top: 0px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+a {
+  color: #10C7A2;
+}
+a:hover {
+  color: #0e0e0e;
+}
+
+.infoTable {
+  border : 1px solid rgb(250, 250, 250);
+  background-color: rgb(250, 250, 250);
+}
+.infoTr {
+  border-bottom : 1px solid rgb(250, 250, 250);
+}
+.btn {
+  color: rgb(150, 150, 150);
+  height: 23.5px;
+  margin-left: 5px;
+  border-radius: 10px;
+  border: 1px solid #dddddd;
+  border-color: #dddddd;
+  background-color: #ffffff;
+  cursor: pointer;
+}
+.btn:hover {
+  color: #0e0e0e;
+  font-weight: bold;
+  background-color: #CFF4EC;
+}
+.categoryT {
+  vertical-align: middle;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ellipsis {
+  vertical-align: middle;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.imgViewer {
+  max-width: 600px;
+  max-height: 100%;
+  overflow: hidden;
+}
+img {
+  max-width: 600px;
+  max-height: 90%;
+}
