@@ -203,127 +203,138 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     npsPen0002DTO.setRequestId(requestId);
     
     ArrayList successPathList = (ArrayList) reqBody.get("successPathList");
-    for(int i=0; i<successPathList.size(); i++) {
-      JSONObject ocrObj   = new JSONObject();
-      
-      String imagePath    = (String) successPathList.get(i);
-      String imageName    = imagePath.replace("/" + requestId + "/", "");
-      String tmpPath      = imagePath.substring(0, imagePath.lastIndexOf(".")) + "_" + imagePath.substring(imagePath.lastIndexOf(".")+1);
-      
-      String filePath     = "/data/twinreader/data/output" + tmpPath + tmpPath.replace(requestId, "extractionResult") + "_extract_result.json";
-      
-      // 2. DB NPSPEN0001, NPSPEN0002 PARAM SET
-      Logger.info("2. DB NPSPEN0001, NPSPEN0002 PARAM SET");
-      npsPen0002DTO.setFileNm(imageName);
-      
-      // 3. 고객사 요청에 대한 DB 값 가져오기 (FORMAT)
-      Logger.info("3. 고객사 요청에 대한 DB 값 가져오기 (FORMAT)");
-      NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
-      npsPen0001DTO.setRequestId(requestId);
-      HashMap<String, Object> selectReqInfo = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectReqInfo", npsPen0001DTO);
-      String format         = (String) selectReqInfo.get("FORMAT");
-      
-      // 4. 항목 추출 결과 OUTPUT 경로에서 가져오기
-      Logger.info("4. 항목 추출 결과 OUTPUT 경로에서 가져오기");
-      File readFile         = new File(filePath);
-      if(readFile.getParentFile().exists()) {
-        BufferedReader br   = new BufferedReader((new InputStreamReader(new FileInputStream(readFile))));
-        String strJson      = br.readLine();
-        JSONParser par      = new JSONParser();
-        JSONObject jsonObj  = (JSONObject) par.parse(strJson);
+    try {
+      for(int i=0; i<successPathList.size(); i++) {
+        JSONObject ocrObj   = new JSONObject();
         
-        JSONObject tmpObj = new JSONObject();
+        String imagePath    = (String) successPathList.get(i);
+        String imageName    = imagePath.replace("/" + requestId + "/", "");
+        String tmpPath      = imagePath.substring(0, imagePath.lastIndexOf(".")) + "_" + imagePath.substring(imagePath.lastIndexOf(".")+1);
         
-        Iterator pages = jsonObj.keySet().iterator();
-        while(pages.hasNext()) {
-          String pageNum = pages.next().toString();
-          JSONObject pageObj  = (JSONObject) jsonObj.get(pageNum);
-          JSONObject metaData  = (JSONObject) pageObj.get("metaData");
+        String filePath     = "/data/twinreader/data/output" + tmpPath + tmpPath.replace(requestId, "extractionResult") + "_extract_result.json";
+        
+        // 2. DB NPSPEN0001, NPSPEN0002 PARAM SET
+        Logger.info("2. DB NPSPEN0001, NPSPEN0002 PARAM SET");
+        npsPen0002DTO.setFileNm(imageName);
+        
+        // 3. 고객사 요청에 대한 DB 값 가져오기 (FORMAT)
+        Logger.info("3. 고객사 요청에 대한 DB 값 가져오기 (FORMAT)");
+        NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
+        npsPen0001DTO.setRequestId(requestId);
+        HashMap<String, Object> selectReqInfo = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectReqInfo", npsPen0001DTO);
+        String format         = (String) selectReqInfo.get("FORMAT");
+        
+        // 4. 항목 추출 결과 OUTPUT 경로에서 가져오기
+        Logger.info("4. 항목 추출 결과 OUTPUT 경로에서 가져오기");
+        File readFile         = new File(filePath);
+        if(readFile.getParentFile().exists()) {
+          BufferedReader br   = new BufferedReader((new InputStreamReader(new FileInputStream(readFile))));
+          String strJson      = br.readLine();
+          JSONParser par      = new JSONParser();
+          JSONObject jsonObj  = (JSONObject) par.parse(strJson);
           
-          // 5. DB NPSPEN0002 UPDATE or INSERT
-          Logger.info("5. DB NPSPEN0002 UPDATE or INSERT");
-          int pageNumber = Integer.parseInt(pageNum.replace("Page", ""));
-          npsPen0002DTO.setPageNum(pageNumber);
-          npsPen0002DTO.setCategory((String) metaData.get("classification"));
-          npsPen0002DTO.setProStatus("success");
-          npsPen0002DTO.setProMsg(null);
+          JSONObject tmpObj = new JSONObject();
           
-          if(pageNumber > 1) {
-            Logger.info("##### NpsPen0002Sql.insertNpsPen0002 호출");
-            Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO.toString());
-            sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPen0002DTO);
-          } else {
-            Logger.info("##### NpsPen0002Sql.updateNpsPen0002 호출");
-            Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO.toString());
-            sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
+          Iterator pages = jsonObj.keySet().iterator();
+          while(pages.hasNext()) {
+            String pageNum = pages.next().toString();
+            JSONObject pageObj  = (JSONObject) jsonObj.get(pageNum);
+            JSONObject metaData  = (JSONObject) pageObj.get("metaData");
+            
+            // 5. DB NPSPEN0002 UPDATE or INSERT
+            Logger.info("5. DB NPSPEN0002 UPDATE or INSERT");
+            int pageNumber = Integer.parseInt(pageNum.replace("Page", ""));
+            npsPen0002DTO.setPageNum(pageNumber);
+            npsPen0002DTO.setCategory((String) metaData.get("classification"));
+            npsPen0002DTO.setProStatus("success");
+            npsPen0002DTO.setProMsg(null);
+            
+            if(pageNumber > 1) {
+              Logger.info("##### NpsPen0002Sql.insertNpsPen0002 호출");
+              Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO.toString());
+              sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPen0002DTO);
+            } else {
+              Logger.info("##### NpsPen0002Sql.updateNpsPen0002 호출");
+              Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO.toString());
+              sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
+            }
+            
+            // 6. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
+            Logger.info("6. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
+            pageObj.remove("metaData");
+            pageObj.remove("version");
+            pageObj.remove("requestMetaData");
+            if("simple".equals(format)) pageObj.remove("values");
+            
+            // 7. 페이지 별 카테고리 정보 추가
+            Logger.info("7. 페이지 별 카테고리 정보 추가");
+            pageObj.put("category", metaData.get("classification"));
+            
+            tmpObj.put(pageNum, pageObj);
           }
           
-          // 6. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
-          Logger.info("6. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
-          pageObj.remove("metaData");
-          pageObj.remove("version");
-          pageObj.remove("requestMetaData");
-          if("simple".equals(format)) pageObj.remove("values");
+          ocrObj.put("fileNm", imageName);
+          ocrObj.put("fileResult", tmpObj);
+          ocrResult.add(ocrObj);
+        } else {
+          // 8. DB NPSPEN0002 UPDATE
+          Logger.info("8. DB NPSPEN0002 UPDATE");
+          npsPen0002DTO.setPageNum(0);
+          npsPen0002DTO.setCategory("분류실패");
+          npsPen0002DTO.setProStatus("failed");
+          npsPen0002DTO.setProMsg(null);
+          sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
           
-          // 7. 페이지 별 카테고리 정보 추가
-          Logger.info("7. 페이지 별 카테고리 정보 추가");
-          pageObj.put("category", metaData.get("classification"));
-          
-          tmpObj.put(pageNum, pageObj);
+          ocrObj.put("fileNm", imageName);
+          ocrObj.put("fileResult", new JSONObject());
+          ocrResult.add(ocrObj);
         }
+      }
+    } catch(Exception error) {
+      Logger.error("##### SuccessPathList PROCESS FAILED " + error.getMessage());
+      throw new Exception("SuccessPathList PROCESS FAILED");
+    }
+    
+    // 9. 실패 건에 대해 처리
+    Logger.info("9. 실패 건에 대해 처리");
+    ArrayList failInfoList = (ArrayList) reqBody.get("failInfoList");
+    try {
+      for(int i=0; i<failInfoList.size(); i++) {
+        JSONObject ocrObj   = new JSONObject();
+        JSONObject pathObj  = (JSONObject) successPathList.get(i);
         
-        ocrObj.put("fileNm", imageName);
-        ocrObj.put("fileResult", tmpObj);
-        ocrResult.add(ocrObj);
-      } else {
-        // 8. DB NPSPEN0002 UPDATE
-        Logger.info("8. DB NPSPEN0002 UPDATE");
+        String imagePath    = (String) pathObj.get("imagePath");
+        String imageName    = imagePath.replace("/" + requestId + "/", "");
+        
+        // 10. 문서분류 결과 조회 - /twinreader-mgr-service/api/v1/analysis/category
+        Logger.info("10. 문서분류 결과 조회");
+        JSONObject jsonObject = new JSONObject();
+        JSONArray jsonArray   = new JSONArray();
+        jsonArray.add(imagePath);
+        jsonObject.put("images", jsonArray);
+        JSONArray analysisResultArr = webClientUtil.post(
+            "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/category"
+            , jsonObject
+            , JSONArray.class
+        );
+        JSONObject analysisResult = (JSONObject) analysisResultArr.get(0);
+        
+        // 11. DB NPSPEN0002 UPDATE
+        Logger.info("11. DB NPSPEN0002 UPDATE");
+        npsPen0002DTO.setFileNm(imageName);
         npsPen0002DTO.setPageNum(0);
         npsPen0002DTO.setCategory("분류실패");
-        npsPen0002DTO.setProStatus("failed");
-        npsPen0002DTO.setProMsg(null);
+        npsPen0002DTO.setProStatus((Boolean) analysisResult.get("success") ? "success": "failed");
+        npsPen0002DTO.setProMsg((String) analysisResult.get("message"));
         sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
         
         ocrObj.put("fileNm", imageName);
         ocrObj.put("fileResult", new JSONObject());
         ocrResult.add(ocrObj);
       }
-    }
-    
-    // 9. 실패 건에 대해 처리
-    Logger.info("9. 실패 건에 대해 처리");
-    ArrayList failInfoList = (ArrayList) reqBody.get("failInfoList");
-    for(int i=0; i<failInfoList.size(); i++) {
-      JSONObject ocrObj   = new JSONObject();
-      
-      String imagePath    = (String) successPathList.get(i);
-      String imageName    = imagePath.replace("/" + requestId + "/", "");
-      
-      // 10. 문서분류 결과 조회 - /twinreader-mgr-service/api/v1/analysis/category
-      Logger.info("10. 문서분류 결과 조회");
-      JSONObject jsonObject = new JSONObject();
-      JSONArray jsonArray   = new JSONArray();
-      jsonArray.add(imagePath);
-      jsonObject.put("images", jsonArray);
-      JSONArray analysisResultArr = webClientUtil.post(
-          "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/category"
-          , jsonObject
-          , JSONArray.class
-      );
-      JSONObject analysisResult = (JSONObject) analysisResultArr.get(0);
-      
-      // 11. DB NPSPEN0002 UPDATE
-      Logger.info("11. DB NPSPEN0002 UPDATE");
-      npsPen0002DTO.setFileNm(imageName);
-      npsPen0002DTO.setPageNum(0);
-      npsPen0002DTO.setCategory("분류실패");
-      npsPen0002DTO.setProStatus((Boolean) analysisResult.get("success") ? "success": "failed");
-      npsPen0002DTO.setProMsg((String) analysisResult.get("message"));
-      sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
-      
-      ocrObj.put("fileNm", imageName);
-      ocrObj.put("fileResult", new JSONObject());
-      ocrResult.add(ocrObj);
+    } catch(Exception error) {
+      Logger.error("##### FaileInfoList PROCESS FAILED " + error.getMessage());
+      throw new Exception("FaileInfoList PROCESS FAILED");
     }
     
     return ocrResult;
