@@ -209,14 +209,19 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     LocalDateTime now = LocalDateTime.now();
     String formatNow  = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     
-    // 1. DB NPSPEN0001 PARAM SET
+    // 1. DB NPSPEN0001, NPSPEN0002 PARAM SET
+    Logger.info("1. DB NPSPEN0001, NPSPEN0002 PARAM SET");
     NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
     npsPen0001DTO.setRequestId(requestId);
     npsPen0001DTO.setProStatus("analysis");
     npsPen0001DTO.setResDt(formatNow);
     
+    NpsPen0002DTO npsPen0002DTO = new NpsPen0002DTO();
+    npsPen0002DTO.setRequestId(requestId);
+    
     try {
       // 2. DB NPSPEN0001 PRO_STATUS UPDATE
+      Logger.info("2. DB NPSPEN0001 PRO_STATUS UPDATE");
       sqlSessionTemplate.update("NpsPen0001Sql.updateProStatus", npsPen0001DTO);
     } catch(Exception error) {
       Logger.error("##### PRO_STATUS UPDATE FAILED " + error.getMessage());
@@ -231,7 +236,6 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
    * @param requestId
    * @throws Exception
    */
-//  @Transactional(timeout = 120)
   public void getProStatus(String requestId) throws Exception {
     
     // 1. DB NPSPEN0001 PARAM SET
@@ -327,68 +331,107 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
       if(success) {
         Logger.info("5-1. 분석 성공한 경우");
         try {
-          // 6. 항목 추출 결과 OUTPUT 경로에서 가져오기
-          Logger.info("6. 항목 추출 결과 OUTPUT 경로에서 가져오기");
-          File readFile         = new File(filePath);
-          if(readFile.getParentFile().exists()) {
-            BufferedReader br   = new BufferedReader((new InputStreamReader(new FileInputStream(readFile))));
-            String strJson      = br.readLine();
-            JSONParser par      = new JSONParser();
-            JSONObject jsonObj  = (JSONObject) par.parse(strJson);
-            
-            JSONObject tmpObj   = new JSONObject();
-            
-            String pageName     = "Page" + pageNumber;
-            
-            JSONObject pageObj  = (JSONObject) jsonObj.get(pageName);
-            JSONObject metaData = (JSONObject) pageObj.get("metaData");
-            
-            // 7. DB NPSPEN0002 UPDATE or INSERT
-            Logger.info("7. 항목 추출 결과 OUTPUT 경로에서 가져오기");
-            if(pageNumber > 1) {
-              Logger.info("##### NpsPen0002Sql.insertNpsPen0002 호출");
-              Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
-              sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPen0002DTO);
+          // 멀티페이지인 경우 1개의 JSON 파일에 결과가 나오기 때문에, 중복 처리를 방지하기 위해 조건문 추가
+          if(pageNumber < 2) {
+            // 6. 항목 추출 결과 OUTPUT 경로에서 가져오기
+            Logger.info("6. 항목 추출 결과 OUTPUT 경로에서 가져오기");
+            File readFile         = new File(filePath);
+            if(readFile.getParentFile().exists()) {
+              BufferedReader br   = new BufferedReader((new InputStreamReader(new FileInputStream(readFile))));
+              String strJson      = br.readLine();
+              JSONParser par      = new JSONParser();
+              JSONObject jsonObj  = (JSONObject) par.parse(strJson);
+              
+              JSONObject tmpObj   = new JSONObject();
+              
+              // 루나 테스트 - 2023.11.27 23:30 START
+              Iterator pages = jsonObj.keySet().iterator();
+              while(pages.hasNext()) {
+                String pageNum = pages.next().toString();
+                JSONObject pageObj  = (JSONObject) jsonObj.get(pageNum);
+                JSONObject metaData  = (JSONObject) pageObj.get("metaData");
+                
+                // 5. DB NPSPEN0002 UPDATE or INSERT
+                Logger.info("5. DB NPSPEN0002 UPDATE or INSERT");
+                pageNumber = Integer.parseInt(pageNum.replace("Page", ""));
+                npsPen0002DTO.setPageNum(pageNumber);
+                npsPen0002DTO.setCategory((String) metaData.get("classification"));
+                
+                if(pageNumber > 1) {
+                  Logger.info("##### NpsPen0002Sql.insertNpsPen0002 호출");
+                  Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
+                  sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPen0002DTO);
+                } else {
+                  Logger.info("##### NpsPen0002Sql.updateNpsPen0002 호출");
+                  Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
+                  sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
+                }
+                
+                // 6. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
+                Logger.info("6. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
+                pageObj.remove("metaData");
+                pageObj.remove("version");
+                pageObj.remove("requestMetaData");
+                if("simple".equals(format)) pageObj.remove("values");
+                
+                // 7. 페이지 별 카테고리 정보 추가
+                Logger.info("7. 페이지 별 카테고리 정보 추가");
+                pageObj.put("category", metaData.get("classification"));
+                
+                tmpObj.put(pageNum, pageObj);
+              }
+              // 루나 테스트 - 2023.11.27 23:30 END
+              
+              /*
+              // 루나 테스트 - 2023.11.27 23:30 START
+              String pageName     = "Page" + pageNumber;
+              
+              JSONObject pageObj  = (JSONObject) jsonObj.get(pageName);
+              
+              // 7. DB NPSPEN0002 UPDATE or INSERT
+              Logger.info("7. 항목 추출 결과 OUTPUT 경로에서 가져오기");
+              if(pageNumber > 1) {
+                Logger.info("##### NpsPen0002Sql.insertNpsPen0002 호출");
+                Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
+                sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPen0002DTO);
+              } else {
+                Logger.info("##### NpsPen0002Sql.updateNpsPen0002 호출");
+                Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
+                sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
+              }
+              
+              // 8. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
+              Logger.info("8. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
+              pageObj.remove("metaData");
+              pageObj.remove("version");
+              pageObj.remove("requestMetaData");
+              if("simple".equals(format)) pageObj.remove("values");
+              
+              // 9. 페이지 별 카테고리 정보 추가
+              Logger.info("9. 페이지 별 카테고리 정보 추가");
+              pageObj.put("category", (String) analyObj.get("category"));
+              
+              tmpObj.put(pageName, pageObj);
+              // 루나 테스트 - 2023.11.27 23:30 END
+              */
+              
+              ocrObj.put("fileNm", imageName);
+              ocrObj.put("fileResult", tmpObj);
+              ocrResult.add(ocrObj);
             } else {
-              Logger.info("##### NpsPen0002Sql.updateNpsPen0002 호출");
-              Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
+              // 8. DB NPSPEN0002 UPDATE
+              Logger.info("8. DB NPSPEN0002 UPDATE");
+              npsPen0002DTO.setPageNum(0);
+              npsPen0002DTO.setCategory("분류실패");
+              npsPen0002DTO.setProStatus("failed");
+              npsPen0002DTO.setProMsg(null);
               sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
+              
+              ocrObj.put("fileNm", imageName);
+              ocrObj.put("fileResult", new JSONObject());
+              ocrResult.add(ocrObj);
             }
-            
-            // 8. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
-            Logger.info("8. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
-            pageObj.remove("metaData");
-            pageObj.remove("version");
-            pageObj.remove("requestMetaData");
-            if("simple".equals(format)) pageObj.remove("values");
-            
-            // 9. 페이지 별 카테고리 정보 추가
-            Logger.info("9. 페이지 별 카테고리 정보 추가");
-            pageObj.put("category", metaData.get("classification"));
-            
-            tmpObj.put(pageName, pageObj);
-            
-            
-            ocrObj.put("fileNm", imageName);
-            ocrObj.put("fileResult", tmpObj);
-            ocrResult.add(ocrObj);
-          } else {
-            // 8. DB NPSPEN0002 UPDATE
-            Logger.info("8. DB NPSPEN0002 UPDATE");
-            npsPen0002DTO.setPageNum(0);
-            npsPen0002DTO.setCategory("분류실패");
-            npsPen0002DTO.setProStatus("failed");
-            npsPen0002DTO.setProMsg(null);
-            sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
-            
-            ocrObj.put("fileNm", imageName);
-            ocrObj.put("fileResult", new JSONObject());
-            ocrResult.add(ocrObj);
           }
-          
-          
-          
-          
         } catch(Exception error) {
           Logger.error("##### SUCCESS RESULT PROCESS FAILED " + error.getMessage());
           throw new Exception("SUCCESS RESULT PROCESS FAILED");
