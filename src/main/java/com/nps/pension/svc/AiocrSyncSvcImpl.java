@@ -4,6 +4,7 @@ import com.nps.pension.config.WebClientUtil;
 import com.nps.pension.dto.NpsPen0001DTO;
 import com.nps.pension.dto.NpsPen0002DTO;
 import com.nps.pension.dto.NpsPenHistoryDTO;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -416,14 +418,35 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
           throw new Exception("FAILED RESULT PROCESS FAILED");
         }
       }
-      
-      
-      
-      
-      
     }
     
     return ocrResult;
+  }
+  
+  public void deleteDirectory(String requestId) throws Exception {
+    
+    Logger.info("##### deleteDirectory START #####" + requestId);
+    
+    try {
+      File inputFolder = new File("/data/twinreader/data/input/" + requestId + "/");
+      if (inputFolder.exists()) {
+        FileUtils.cleanDirectory(inputFolder);
+        inputFolder.delete();
+      }
+      
+      File outputFolder = new File("/data/twinreader/data/output/" + requestId + "/");
+      if (outputFolder.exists()) {
+        FileUtils.cleanDirectory(outputFolder);
+        outputFolder.delete();
+      }
+    } catch(Exception error) {
+      Logger.error("##### INPUT, OUTPUT DIRECTORY FAILED : " + error.getMessage());
+    }
+    
+    // TEST
+//    Thread.sleep(10000);
+    
+    Logger.info("##### deleteDirectory END #####");
   }
   
 }

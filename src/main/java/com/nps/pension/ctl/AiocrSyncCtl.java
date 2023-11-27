@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,7 +53,6 @@ public class AiocrSyncCtl {
       aiocrSyncSvc.getProStatus(requestId);
       
       // 4. 항목 추출 결과 OUTPUT 경로에서 가져와 수정
-      // 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
       JSONArray ocrResult = aiocrSyncSvc.getOcrResult(requestId, request);
       
       result.put("rsp_code", HttpStatus.OK);
@@ -64,21 +64,10 @@ public class AiocrSyncCtl {
       result.put("rsp_msg", error.getMessage());
     }
     
-    // TODO ASYNC 로 변경? (판단 필요)
     // 5. 서버에 저장 된 파일 삭제 (INPUT, OUTPUT)
     try {
       if ("true".equals(deleteYn)) {
-        File inputFolder = new File("/data/twinreader/data/input/" + requestId + "/");
-        if (inputFolder.exists()) {
-          FileUtils.cleanDirectory(inputFolder);
-          inputFolder.delete();
-        }
-        
-        File outputFolder = new File("/data/twinreader/data/output/" + requestId + "/");
-        if (outputFolder.exists()) {
-          FileUtils.cleanDirectory(outputFolder);
-          outputFolder.delete();
-        }
+        aiocrSyncSvc.deleteDirectory(requestId);
       }
     } catch(Exception error) {
       Logger.error("##### INPUT, OUTPUT DIRECTORY FAILED : " + error.getMessage());

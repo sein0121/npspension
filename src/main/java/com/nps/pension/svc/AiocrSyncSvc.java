@@ -13,5 +13,6 @@ public interface AiocrSyncSvc {
   public void setProStatus(String requestId, JSONObject reqBody, HttpServletRequest request) throws Exception;
   public void getProStatus(String requestId) throws Exception;
   public JSONArray getOcrResult(String requestId, HttpServletRequest request) throws Exception;
+  public void deleteDirectory(String requestId) throws Exception;
   
 }
