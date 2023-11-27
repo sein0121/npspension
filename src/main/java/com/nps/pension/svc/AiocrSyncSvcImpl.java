@@ -248,8 +248,8 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     // 2. DB NPSPEN0001 PRO_STATUS 조회 (10초에 한 번, 2분 동안 조회)
     while(!"analysis".equals(proStatus) && idx <= threadTimeout) {
       Logger.info("2. DB NPSPEN0001 PRO_STATUS 조회 " + idx);
-      proStatus = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectProStatus", npsPen0001DTO);
       Thread.sleep(threadSleep);
+      proStatus = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectProStatus", npsPen0001DTO);
       idx++;
     }
     
@@ -344,7 +344,6 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
               
               JSONObject tmpObj   = new JSONObject();
               
-              // 루나 테스트 - 2023.11.27 23:30 START
               Iterator pages = jsonObj.keySet().iterator();
               while(pages.hasNext()) {
                 String pageNum = pages.next().toString();
@@ -380,40 +379,6 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
                 
                 tmpObj.put(pageNum, pageObj);
               }
-              // 루나 테스트 - 2023.11.27 23:30 END
-              
-              /*
-              // 루나 테스트 - 2023.11.27 23:30 START
-              String pageName     = "Page" + pageNumber;
-              
-              JSONObject pageObj  = (JSONObject) jsonObj.get(pageName);
-              
-              // 7. DB NPSPEN0002 UPDATE or INSERT
-              Logger.info("7. 항목 추출 결과 OUTPUT 경로에서 가져오기");
-              if(pageNumber > 1) {
-                Logger.info("##### NpsPen0002Sql.insertNpsPen0002 호출");
-                Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
-                sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPen0002DTO);
-              } else {
-                Logger.info("##### NpsPen0002Sql.updateNpsPen0002 호출");
-                Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
-                sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
-              }
-              
-              // 8. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
-              Logger.info("8. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
-              pageObj.remove("metaData");
-              pageObj.remove("version");
-              pageObj.remove("requestMetaData");
-              if("simple".equals(format)) pageObj.remove("values");
-              
-              // 9. 페이지 별 카테고리 정보 추가
-              Logger.info("9. 페이지 별 카테고리 정보 추가");
-              pageObj.put("category", (String) analyObj.get("category"));
-              
-              tmpObj.put(pageName, pageObj);
-              // 루나 테스트 - 2023.11.27 23:30 END
-              */
               
               ocrObj.put("fileNm", imageName);
               ocrObj.put("fileResult", tmpObj);
