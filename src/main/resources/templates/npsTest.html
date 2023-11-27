@@ -29,6 +29,11 @@
                 포멧여부 : <input type="checkbox" id="formatChk" checked/>
               </p>
             </td>
+            <td style="width: 20%; min-width:130px;">
+              <p>
+                실시간여부 : <input type="checkbox" id="syncYn"/>
+              </p>
+            </td>
           </tr>
           <tr class="infoTr">
             <td style="width: 20%; min-width:300px;">
@@ -89,6 +94,7 @@
     let today     = new Date();
     let requestId = $('#requestId').val();
     let formatChk = $('#formatChk').is(':checked');
+    let syncYn    = $('#syncYn').is(':checked');
 
     if(requestId==='')  requestId = "국민연금테스트_"+today.getFullYear()+Number(today.getMonth()+1)+today.getDate()+today.getHours()+today.getMinutes()+today.getSeconds();
 
@@ -101,8 +107,12 @@
       formData.append("ocrFiles", files[i]);
     }
 
+    let apiUrl = '/api/v1/aiocr/loadAiocrProgram';
+
+    if(syncYn) apiUrl = '/api/v1/aiocr/aiocrSyncLoad';
+
     $.ajax({
-      url : '/api/v1/aiocr/loadAiocrProgram',
+      url : apiUrl,
       data: formData,
       processData : false,
       contentType : false,

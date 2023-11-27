@@ -41,6 +41,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
   @Value("${server.ip}")
   String serverIP;
   
+  @Value("${aipct.pension.port}")
+  String port;
+  
   @Value("${twinreader.version}")
   String twinreaderVersion;
   
@@ -151,7 +154,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("images", analysisArr);
         analysisObj.put("requestId", requestId);
-        analysisObj.put("callbackUrl", "http://"+serverIP+":9100/api/v1/aiocr/getOcrResult");
+        analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/getOcrResult");
         JSONObject loadAnalysis = webClientUtil.post(
             "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/inference/reqId"
             , analysisObj
@@ -164,7 +167,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("pathList", analysisArr);
         analysisObj.put("requestID", requestId);
-        analysisObj.put("callbackUrl", "http://"+serverIP+":9100/api/v1/aiocr/getOcrResult");
+        analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/getOcrResult");
         analysisObj.put("pipelineName", pipelineName);
         analysisObj.put("clsfGroupID", clsfGroupID);
         

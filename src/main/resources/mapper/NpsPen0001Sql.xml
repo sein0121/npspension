@@ -16,6 +16,21 @@
     ]]>
   </select>
 
+  <update id="updateProStatus">
+    <![CDATA[
+      UPDATE NPSPEN0001
+      SET PRO_STATUS = #{proStatus}
+      WHERE REQUEST_ID = #{requestId}
+    ]]>
+  </update>
+
+  <select id="selectProStatus" resultType="String">
+    <![CDATA[
+      SELECT PRO_STATUS FROM NPSPEN0001
+      WHERE REQUEST_ID = #{requestId}
+    ]]>
+  </select>
+
   <select id="selectReqInfo" resultType="java.util.HashMap">
     <![CDATA[
       SELECT
