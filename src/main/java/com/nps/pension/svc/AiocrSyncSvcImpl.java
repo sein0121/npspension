@@ -72,6 +72,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     npsPen0001DTO.setRequestId(requestId);
     
     // 2. NPSPEN0001 테이블 RequestID 개수 조회
+    Logger.info("2. NPSPEN0001 테이블 RequestID 개수 조회");
     int reqIdCnt = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectReqIdCnt", npsPen0001DTO);
     
     // 3. 이 전에 사용 된 RequestID 인 경우 오류 처리
@@ -103,10 +104,10 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     // Sync 방식의 경우 callbackUrl 불필요
     npsPenHistoryDTO.setCallbackUrl(null);
     
-    npsPenHistoryDTO.setPageNum(0);        // 항목 추출 후 UPDATE
-    npsPenHistoryDTO.setCategory(null);    // 항목 추출 후 UPDATE
-    npsPenHistoryDTO.setProStatus(null);   // 항목 추출 후 UPDATE
-    npsPenHistoryDTO.setProMsg(null);      // 항목 추출 후 UPDATE
+    npsPenHistoryDTO.setPageNum(0);           // 항목 추출 후 UPDATE
+    npsPenHistoryDTO.setCategory(null);       // 항목 추출 후 UPDATE
+    npsPenHistoryDTO.setProStatus("start");   // 항목 추출 후 UPDATE
+    npsPenHistoryDTO.setProMsg(null);         // 항목 추출 후 UPDATE
     
     // 2. 요청에 대한 DB NPSPEN0001 INSERT
     Logger.info("2. 요청에 대한 DB NPSPEN0001 INSERT");
@@ -212,6 +213,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
     npsPen0001DTO.setRequestId(requestId);
     npsPen0001DTO.setProStatus("analysis");
+    npsPen0001DTO.setResDt(formatNow);
     
     try {
       // 2. DB NPSPEN0001 PRO_STATUS UPDATE
@@ -229,7 +231,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
    * @param requestId
    * @throws Exception
    */
-  @Transactional(timeout = 120)
+//  @Transactional(timeout = 120)
   public void getProStatus(String requestId) throws Exception {
     
     // 1. DB NPSPEN0001 PARAM SET
@@ -239,16 +241,10 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     int idx           = 1;
     String proStatus  = "";
     
-    Logger.info("##### threadTimeout : " + threadTimeout);
-    Logger.info("##### threadSleep : " + threadSleep);
-    
     // 2. DB NPSPEN0001 PRO_STATUS 조회 (10초에 한 번, 2분 동안 조회)
     while(!"analysis".equals(proStatus) && idx <= threadTimeout) {
+      Logger.info("2. DB NPSPEN0001 PRO_STATUS 조회 " + idx);
       proStatus = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectProStatus", npsPen0001DTO);
-      
-      Logger.info("..." + idx + " : " + proStatus);
-      Logger.info("test : " + "success".equals(proStatus));
-      
       Thread.sleep(threadSleep);
       idx++;
     }
@@ -273,6 +269,11 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     
     // 1. DB NPSPEN0001, NPSPEN0002 PARAM SET
     Logger.info("1. DB NPSPEN0001, NPSPEN0002 PARAM SET");
+    NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
+    npsPen0001DTO.setRequestId(requestId);
+    npsPen0001DTO.setProStatus("finish");
+    npsPen0001DTO.setResDt(formatNow);
+    
     NpsPen0002DTO npsPen0002DTO = new NpsPen0002DTO();
     npsPen0002DTO.setRequestId(requestId);
     npsPen0002DTO.setRegDt(formatNow);
@@ -297,17 +298,15 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     
     // 3. 고객사 요청에 대한 DB 값 가져오기 (FORMAT)
     Logger.info("3. 고객사 요청에 대한 DB 값 가져오기 (FORMAT)");
-    NpsPen0001DTO npsPen0001DTO = new NpsPen0001DTO();
-    npsPen0001DTO.setRequestId(requestId);
     HashMap<String, Object> selectReqInfo = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectReqInfo", npsPen0001DTO);
     String format         = (String) selectReqInfo.get("FORMAT");
     
     for(int i=0; i<analyArr.size(); i++) {
+      HashMap<String, Object> analyObj = (HashMap<String, Object>) analyArr.get(i);
       JSONObject ocrObj   = new JSONObject();
       
-      JSONObject analyObj = (JSONObject) analyArr.get(i);
-      
       Boolean success     = (Boolean) analyObj.get("success");
+      int pageNumber      = Integer.parseInt((String) analyObj.get("pageNumber"));
       
       String imagePath    = (String) analyObj.get("path");
       String imageName    = imagePath.replace("/" + requestId + "/", "");
@@ -315,10 +314,10 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
       
       String filePath     = "/data/twinreader/data/output" + tmpPath + tmpPath.replace(requestId, "extractionResult") + "_extract_result.json";
       
-      // 4. DB NPSPEN0001, NPSPEN0002 PARAM SET
-      Logger.info("4. DB NPSPEN0001, NPSPEN0002 PARAM SET");
+      // 4. DB NPSPEN0002 PARAM SET
+      Logger.info("4. DB NPSPEN0002 PARAM SET");
       npsPen0002DTO.setFileNm(imageName);
-      npsPen0002DTO.setPageNum((Integer) analyObj.get("pageNumber"));
+      npsPen0002DTO.setPageNum(pageNumber);
       npsPen0002DTO.setCategory((String) analyObj.get("category"));
       npsPen0002DTO.setProStatus(success ? "success" : "failed");
       npsPen0002DTO.setProMsg((String) analyObj.get("message"));
@@ -327,22 +326,93 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
       // 5-1. 분석 성공한 경우
       if(success) {
         Logger.info("5-1. 분석 성공한 경우");
-        
+        try {
+          // 6. 항목 추출 결과 OUTPUT 경로에서 가져오기
+          Logger.info("6. 항목 추출 결과 OUTPUT 경로에서 가져오기");
+          File readFile         = new File(filePath);
+          if(readFile.getParentFile().exists()) {
+            BufferedReader br   = new BufferedReader((new InputStreamReader(new FileInputStream(readFile))));
+            String strJson      = br.readLine();
+            JSONParser par      = new JSONParser();
+            JSONObject jsonObj  = (JSONObject) par.parse(strJson);
+            
+            JSONObject tmpObj   = new JSONObject();
+            
+            String pageName     = "Page" + pageNumber;
+            
+            JSONObject pageObj  = (JSONObject) jsonObj.get(pageName);
+            JSONObject metaData = (JSONObject) pageObj.get("metaData");
+            
+            // 7. DB NPSPEN0002 UPDATE or INSERT
+            Logger.info("7. 항목 추출 결과 OUTPUT 경로에서 가져오기");
+            if(pageNumber > 1) {
+              Logger.info("##### NpsPen0002Sql.insertNpsPen0002 호출");
+              Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
+              sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPen0002DTO);
+            } else {
+              Logger.info("##### NpsPen0002Sql.updateNpsPen0002 호출");
+              Logger.info("##### npsPen0002DTO 값 : " + npsPen0002DTO);
+              sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
+            }
+            
+            // 8. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)
+            Logger.info("8. 항목 추출 결과 구조 변경 (불필요 데이터 삭제)");
+            pageObj.remove("metaData");
+            pageObj.remove("version");
+            pageObj.remove("requestMetaData");
+            if("simple".equals(format)) pageObj.remove("values");
+            
+            // 9. 페이지 별 카테고리 정보 추가
+            Logger.info("9. 페이지 별 카테고리 정보 추가");
+            pageObj.put("category", metaData.get("classification"));
+            
+            tmpObj.put(pageName, pageObj);
+            
+            
+            ocrObj.put("fileNm", imageName);
+            ocrObj.put("fileResult", tmpObj);
+            ocrResult.add(ocrObj);
+          } else {
+            // 8. DB NPSPEN0002 UPDATE
+            Logger.info("8. DB NPSPEN0002 UPDATE");
+            npsPen0002DTO.setPageNum(0);
+            npsPen0002DTO.setCategory("분류실패");
+            npsPen0002DTO.setProStatus("failed");
+            npsPen0002DTO.setProMsg(null);
+            sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
+            
+            ocrObj.put("fileNm", imageName);
+            ocrObj.put("fileResult", new JSONObject());
+            ocrResult.add(ocrObj);
+          }
+          
+          
+          
+          
+        } catch(Exception error) {
+          Logger.error("##### SUCCESS RESULT PROCESS FAILED " + error.getMessage());
+          throw new Exception("SUCCESS RESULT PROCESS FAILED");
+        }
       }
       // 5-2. 분석 실패한 경우
       else {
         Logger.info("5-2. 분석 실패한 경우");
-        
+        try {
+          sqlSessionTemplate.update("NpsPen0002Sql.updateNpsPen0002", npsPen0002DTO);
+          
+          ocrObj.put("fileNm", imageName);
+          ocrObj.put("fileResult", new JSONObject());
+          ocrResult.add(ocrObj);
+        } catch(Exception error) {
+          Logger.error("##### FAILED RESULT PROCESS FAILED " + error.getMessage());
+          throw new Exception("FAILED RESULT PROCESS FAILED");
+        }
       }
       
       
       
       
-      JSONObject tmpObj = new JSONObject();
-      ocrObj.put("fileNm", imageName);
-      ocrObj.put("fileResult", tmpObj);
       
-      ocrResult.add(ocrObj);
     }
     
     return ocrResult;

@@ -84,7 +84,7 @@ public class AiocrSyncCtl {
       Logger.error("##### INPUT, OUTPUT DIRECTORY FAILED : " + error.getMessage());
     }
     
-    Logger.info("##### aiocrSyncLoad END #####");
+    Logger.info("##### aiocrSyncLoad END #####" + result);
     return result;
   }
   

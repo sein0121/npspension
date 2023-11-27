@@ -19,7 +19,8 @@
   <update id="updateProStatus">
     <![CDATA[
       UPDATE NPSPEN0001
-      SET PRO_STATUS = #{proStatus}
+      SET RES_DT = #{resDt}
+        , PRO_STATUS = #{proStatus}
       WHERE REQUEST_ID = #{requestId}
     ]]>
   </update>
