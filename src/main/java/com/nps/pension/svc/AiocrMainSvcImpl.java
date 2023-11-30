@@ -43,6 +43,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
   
   @Value("${aipct.pension.port}")
   String port;
+
+  @Value("${twinreader.port}")
+  String twinPort;
   
   @Value("${twinreader.version}")
   String twinreaderVersion;
@@ -132,7 +135,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       jsonArray.add("/"+requestId+"/");
       jsonObject.put("images", jsonArray);
       JSONObject delApiResult = webClientUtil.delete(
-          "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/deleteImageData"
+          "http://"+serverIP+":"+twinPort+"/twinreader-mgr-service/api/v1/analysis/deleteImageData"
           , jsonObject
           , JSONObject.class
       );
@@ -156,7 +159,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         analysisObj.put("requestId", requestId);
         analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/getOcrResult");
         JSONObject loadAnalysis = webClientUtil.post(
-            "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/inference/reqId"
+            "http://"+serverIP+":"+twinPort+"/twinreader-mgr-service/api/v1/analysis/inference/reqId"
             , analysisObj
             , JSONObject.class
         );
@@ -172,7 +175,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         analysisObj.put("clsfGroupID", clsfGroupID);
         
         JSONObject loadAnalysis = webClientUtil.post(
-            "http://"+serverIP+":8080/twinreader-mgr-service/api/v2/flow/twrd"
+            "http://"+serverIP+":"+twinPort+"/twinreader-mgr-service/api/v2/flow/twrd"
             , analysisObj
             , JSONObject.class
         );
@@ -316,7 +319,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         jsonArray.add(imagePath);
         jsonObject.put("images", jsonArray);
         JSONArray analysisResultArr = webClientUtil.post(
-            "http://"+serverIP+":8080/twinreader-mgr-service/api/v1/analysis/category"
+            "http://"+serverIP+":"+twinPort+"/twinreader-mgr-service/api/v1/analysis/category"
             , jsonObject
             , JSONArray.class
         );
