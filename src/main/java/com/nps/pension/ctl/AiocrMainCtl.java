@@ -30,6 +30,9 @@ public class AiocrMainCtl {
   @Value("${twinreader.output.deleteYn}")
   String deleteYn;
   
+  @Value("${aipct.pension.async}")
+  Boolean asyncYn;
+  
   @RequestMapping(value="/", method = RequestMethod.GET)
   public String npsTest() {
     return "npsTest";
@@ -48,10 +51,13 @@ public class AiocrMainCtl {
     HashMap<String, Object> result = new HashMap<String, Object>();
     
     try {
-      // 1. RequestID 중복 여부 체크
+      // 1. Sync, Async 정책에 따른 API 제공 처리
+      if(!asyncYn) throw new Exception("호출정보를 확인해주세요.");
+      
+      // 2. RequestID 중복 여부 체크
       aiocrMainSvc.checkRequestId(requestId);
 
-      // 2. 요청받은 파일 처리
+      // 3. 요청받은 파일 처리
       aiocrMainSvc.setOcrProcess(requestId, callbackUrl, format, ocrFiles, request);
       
       result.put("rsp_code", HttpStatus.OK);

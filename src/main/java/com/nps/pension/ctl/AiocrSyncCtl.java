@@ -31,6 +31,9 @@ public class AiocrSyncCtl {
   @Value("${twinreader.output.deleteYn}")
   String deleteYn;
   
+  @Value("${aipct.pension.sync}")
+  Boolean syncYn;
+  
   @RequestMapping(value = "/aiocrSyncLoad", method = RequestMethod.POST)
   @ResponseBody
   public HashMap<String, Object> aiocrSyncLoad(
@@ -43,16 +46,19 @@ public class AiocrSyncCtl {
     HashMap<String, Object> result = new HashMap<String, Object>();
     
     try {
-      // 1. RequestID 중복 여부 체크
-      aiocrSyncSvc.checkRequestId(requestId);
+      // 1. Sync, Async 정책에 따른 API 제공 처리
+      if(!syncYn) throw new Exception("호출정보를 확인해주세요.");
       
-      // 2. 파일 INPUT 경로에 추가 후 분석 요청
+      // 2. RequestID 중복 여부 체크
+      aiocrSyncSvc.checkRequestId(requestId, "dupl");
+      
+      // 3. 파일 INPUT 경로에 추가 후 분석 요청
       aiocrSyncSvc.setOcrProcess(requestId, format, ocrFiles, request);
       
-      // 3. 트윈리더 처리 완료 여부 조회 (PRO_STATUS)
+      // 4. 트윈리더 처리 완료 여부 조회 (PRO_STATUS)
       aiocrSyncSvc.getProStatus(requestId);
       
-      // 4. 항목 추출 결과 OUTPUT 경로에서 가져와 수정
+      // 5. 항목 추출 결과 OUTPUT 경로에서 가져와 수정
       JSONArray ocrResult = aiocrSyncSvc.getOcrResult(requestId, request);
       
       result.put("rsp_code", HttpStatus.OK);
@@ -97,6 +103,45 @@ public class AiocrSyncCtl {
     }
     
     Logger.info("##### setProStatus END #####");
+  }
+  
+  @RequestMapping(value="/aiocrResultLoad", method = RequestMethod.POST)
+  @ResponseBody
+  public HashMap<String, Object> aiocrResultLoad(
+      @RequestParam(value = "requestId") String requestId
+      , HttpServletRequest request) throws Exception {
+    
+    Logger.info("##### aiocrResultLoad START ##### \t requestId : " + requestId);
+    
+    HashMap<String, Object> result = new HashMap<String, Object>();
+    
+    try {
+      // 1. RequestID 유무 체크
+      aiocrSyncSvc.checkRequestId(requestId, "exis");
+      
+      // 2. 항목 추출 결과 OUTPUT 경로에서 가져와 수정
+      JSONArray ocrResult = aiocrSyncSvc.getOcrResult(requestId, request);
+      
+      result.put("rsp_code", HttpStatus.OK);
+      result.put("rsp_msg", "success");
+      result.put("result", ocrResult);
+    } catch(Exception error) {
+      Logger.error("##### aiocrSyncLoad error : " + error.getMessage());
+      result.put("rsp_code", HttpStatus.BAD_REQUEST);
+      result.put("rsp_msg", error.getMessage());
+    }
+    
+    // 3. 서버에 저장 된 파일 삭제 (INPUT, OUTPUT)
+    try {
+      if ("true".equals(deleteYn)) {
+        aiocrSyncSvc.deleteDirectory(requestId);
+      }
+    } catch(Exception error) {
+      Logger.error("##### INPUT, OUTPUT DIRECTORY FAILED : " + error.getMessage());
+    }
+    
+    Logger.info("##### aiocrResultLoad END #####" + result);
+    return result;
   }
   
 }

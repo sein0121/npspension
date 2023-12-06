@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface AiocrSyncSvc {
   
-  public void checkRequestId(String requestId) throws Exception;
+  public void checkRequestId(String requestId, String type) throws Exception;
   public void setOcrProcess(String requestId, String format, MultipartFile[] ocrFiles, HttpServletRequest request) throws Exception;
   public void setProStatus(String requestId, JSONObject reqBody, HttpServletRequest request) throws Exception;
   public void getProStatus(String requestId) throws Exception;

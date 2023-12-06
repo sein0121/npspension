@@ -69,7 +69,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
    * @param requestId
    * @throws Exception
    */
-  public void checkRequestId(String requestId) throws Exception {
+  public void checkRequestId(String requestId, String type) throws Exception {
     
     // 1. DB NPSPEN0001 PARAM SET
     Logger.info("1. DB NPSPEN0001 PARAM SET");
@@ -81,7 +81,9 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     int reqIdCnt = sqlSessionTemplate.selectOne("NpsPen0001Sql.selectReqIdCnt", npsPen0001DTO);
     
     // 3. 이 전에 사용 된 RequestID 인 경우 오류 처리
-    if(reqIdCnt > 0) throw new Exception("중복되는 Request ID 입니다.");
+    if(reqIdCnt > 0 && "dupl".equals(type)) throw new Exception("중복되는 Request ID 입니다.");
+    else if(reqIdCnt == 0 && "exis".equals(type)) throw new Exception("존재하지 않는 Request ID 입니다.");
+    
   }
   
   /**
@@ -182,7 +184,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("pathList", analysisArr);
         analysisObj.put("requestID", requestId);
-        analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/getOcrResult");
+        analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/setProStatus");
         analysisObj.put("pipelineName", pipelineName);
         analysisObj.put("clsfGroupID", clsfGroupID);
         
