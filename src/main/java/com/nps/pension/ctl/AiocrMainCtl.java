@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,6 +37,18 @@ public class AiocrMainCtl {
   @RequestMapping(value="/", method = RequestMethod.GET)
   public String npsTest() {
     return "npsTest";
+  }
+
+  @RequestMapping(value="/demoWeb", method = RequestMethod.GET)
+  public String demoWeb(
+      @RequestParam(value = "requestId") String requestId
+      , @RequestParam(value = "schemaNm") String schemaNm
+      , Model model) {
+
+    model.addAttribute("requestId", requestId);
+    model.addAttribute("schemaNm", schemaNm);
+
+    return "demoWeb";
   }
   
   @RequestMapping(value = "/loadAiocrProgram", method = RequestMethod.POST)
