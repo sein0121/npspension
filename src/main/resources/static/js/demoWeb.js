@@ -26,9 +26,14 @@ $("input[name=previewBtn][value=image]").prop('checked', false);
 
 // $("select[name=serverNo] option[value='"+serverNo+"']").prop('selected', true);
 
+let serverIP = '';
+let twinPort = '';
+
 for (let requestParam of searchParams) {
   if(requestParam[0] === 'requestId') $('#requestId').val(requestParam[1]);
   else if(requestParam[0] === 'schemaNm') $('#schemaNm').val(requestParam[1]);
+  else if(requestParam[0] === 'serverIP') serverIP = requestParam[0];
+  else if(requestParam[0] === 'twinPort') twinPort = requestParam[0];
 }
 
 if($('#requestId').val() !== '' && $('#schemaNm').val() !== '') searchResult();
@@ -175,7 +180,7 @@ function searchResult() {
   }
   else {
     $.ajax({
-      url : 'http://'+serverNo+':8080/twinreader-mgr-service/api/v1/analysis/category',
+      url : 'http://'+serverIP+twinPort+'/twinreader-mgr-service/api/v1/analysis/category',
       data: JSON.stringify(params),
       dataType : 'json',
       processData : false,
@@ -194,7 +199,7 @@ function searchResult() {
         result?.forEach((obj, idx)=>{
           let imgName   = obj?.path?.substr(obj?.path?.lastIndexOf('/')+1);
           let successYn = obj?.success || obj?.success === 'true' ? "성공" : "실패";
-          let url       = 'http://'+serverNo+':8080/twinreader-extn-service/api/v1/extract/visualization?pluginRun='+pluginYn+'&&schemaName='+schemaNm+'.json&imagePath='+ obj?.path +'&pageIndex='+obj?.pageNumber;
+          let url       = 'http://'+serverIP+twinPort+'/twinreader-extn-service/api/v1/extract/visualization?pluginRun='+pluginYn+'&&schemaName='+schemaNm+'.json&imagePath='+ obj?.path +'&pageIndex='+obj?.pageNumber;
 
           if(successYn === "성공") tableHTML += '<tr style="background-color: white;" tabindex='+idx+'>';
           else tableHTML += '<tr class="failed" style="background-color: #C1868E54;">';

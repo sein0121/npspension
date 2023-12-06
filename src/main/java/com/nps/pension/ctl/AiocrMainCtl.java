@@ -33,6 +33,12 @@ public class AiocrMainCtl {
   
   @Value("${aipct.pension.async}")
   Boolean asyncYn;
+
+  @Value("${server.ip}")
+  String serverIP;
+
+  @Value("${twinreader.port}")
+  String twinPort;
   
   @RequestMapping(value="/", method = RequestMethod.GET)
   public String npsTest() {
@@ -41,12 +47,14 @@ public class AiocrMainCtl {
 
   @RequestMapping(value="/demoWeb", method = RequestMethod.GET)
   public String demoWeb(
-      @RequestParam(value = "requestId") String requestId
-      , @RequestParam(value = "schemaNm") String schemaNm
+      @RequestParam(value = "requestId", required = false) String requestId
+      , @RequestParam(value = "schemaNm", required = false) String schemaNm
       , Model model) {
 
     model.addAttribute("requestId", requestId);
     model.addAttribute("schemaNm", schemaNm);
+    model.addAttribute("serverIP", serverIP);
+    model.addAttribute("twinPort", twinPort);
 
     return "demoWeb";
   }
