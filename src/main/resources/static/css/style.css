@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'Noto R';
-  src: url('/readFile/static/css/fonts/NotoSansKR-Regular.woff') format('woff');
+  src: url('/fonts/NotoSansKR-Regular.woff') format('woff');
 }
 
 body {

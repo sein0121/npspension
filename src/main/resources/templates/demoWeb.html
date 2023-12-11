@@ -10,36 +10,49 @@
     <link rel="stylesheet" href="/css/style.css">
 
 </head>
-<body style="padding: 0px 2em;">
+<body style="padding: 0px 2em; overflow:hidden;">
 <div style="width:100%; height:100%; overflow: hidden;">
     <!-- 상단 데이터 -->
     <div style="width:100%; height: 150px;">
         <h2>리퀘스트ID List</h2>
         <div style="width:100%; height:100%;">
-            <table class="infoTable" id="requestInfo" style="max-width:990px; padding-bottom: 5%;">
+            <table class="infoTable" id="requestInfo" style="max-width:990px; /*padding-bottom: 5%;*/">
                 <tr class="infoTr">
                     <td style="width: 20%; min-width:200px;">
-                        <p>
-                            플러그인 적용여부 : <input type="checkbox" id="pluginYn" checked/>
-                        </p>
+                        플러그인 적용여부 : <input type="checkbox" id="pluginYn" checked/>
                     </td>
                     <td style="width: 20%; min-width:300px; display:none;" id="findTr">
-                        <p style="padding-left: 38px;">
-                            검색 (이미지명) : <input style="height:22.5px; cursor: text;" id="findNm"/>
-                        </p>
+                        검색 (이미지명) : <input style="height:22.5px; cursor: text;" id="findNm"/>
+                    </td>
+                    <td style="width: 20%; min-width:300px; display:none;">
+                        <input id="requestId" th:value="${requestId}" readonly/>
+                        <input id="schemaNm" th:value="${schemaNm}" readonly/>
+                        <input id="serverIP" th:value="${serverIP}" readonly/>
+                        <input id="twinPort" th:value="${twinPort}" readonly/>
+                        <input id="requestList" th:value="${requestList}" readonly/>
+                        <input id="schemaNmList" th:value="${schemaList}" readonly/>
                     </td>
                 </tr>
                 <tr class="infoTr">
+                    <!--<td style="width: 20%; min-width:300px;">
+                        리퀘스트ID : <input style="height:22.5px; cursor: text;" id="requestId" onkeyup="enterKey()" th:value="${requestId}"/>
+                    </td>-->
                     <td style="width: 20%; min-width:300px;">
-                        <p>
-                            리퀘스트ID : <input style="height:22.5px; cursor: text;" id="requestId" onkeyup="enterKey()"/>
-                        </p>
+                        리퀘스트ID :
+                        <select style="min-width:196.5px;" name="reqList" id="reqList">
+                            <option value=""></option>
+                        </select>
                     </td>
-                    <td style="width: 20%; min-width:400px;">
-                        <p>
-                            스키마명 (.json 생략) : <input style="height:22.5px; cursor: text;" id="schemaNm"/>
-                            <button class="btn" id="searchBtn">조회</button>
-                        </p>
+                   <!-- <td style="width: 20%; min-width:400px;">
+                        스키마명 (.json 생략) : <input style="height:22.5px; cursor: text;" id="schemaNm" th:value="${schemaNm}"/>
+                        <button class="btn" id="searchBtn">조회</button>
+                    </td>-->
+                    <td style="width: 20%; min-width:300px;">
+                        스키마명 (.json 생략) :
+                        <select style="min-width:196.5px;" name="schemaList" id="schemaList">
+                            <option value=""></option>
+                        </select>
+                        <button class="btn" id="searchBtn">조회</button>
                     </td>
                 </tr>
             </table>
@@ -47,29 +60,26 @@
     </div>
     <!-- 표데이터 -->
     <div style="width:100%; height: 80%;">
-        <div style="width: 800px; height: 90%; overflow:scroll; overflow-x:hidden; overflow-y:auto; scrollbar-width: none; float:left;">
+        <div style="width: 800px; height: 500px; overflow:scroll; overflow-x:hidden; overflow-y:auto; scrollbar-width: none; float:left;">
             <table id="requestResult" style="width:100%; font-family: Noto R;">
                 <thead>
-                <tr>
-                    <th style="width:70px;">No</th>
-                    <th style="width:200px;">분류명</th> <!-- success -->
-                    <th style="width:280px;">이미지명</th> <!-- path에서 가져오기 -->
-                    <th style="width:100px;">페이지</th> <!-- pageNumber -->
-                    <th id="sortResult" style="width:120px;">실행결과</th> <!-- success -->
-                    <th style="width:120px;">HTML</th>
-                    <!-- <th style="width:200px;">MULTI</th> -->
-                </tr>
+                    <tr>
+                        <th style="width:70px;">No</th>
+                        <th style="width:200px;">분류명</th> <!-- success -->
+                        <th style="width:280px;">이미지명</th> <!-- path에서 가져오기 -->
+                        <th style="width:100px;">페이지</th> <!-- pageNumber -->
+                        <th id="sortResult" style="width:120px;">실행결과</th> <!-- success -->
+                        <th style="width:120px;">HTML</th>
+                        <!-- <th style="width:200px;">MULTI</th> -->
+                    </tr>
                 </thead>
                 <tbody style="font-size: 15px">
-                <tr style="height:100px">
-                    <td style="color:rgb(150, 150, 150); text-align:center; vertical-align: middle;" colspan="6">🐳 상단의 조건 설정 후 "조회"를 진행해주세요 🐳</td>
-                </tr>
+                    <tr style="height:100px">
+                        <td style="color:rgb(150, 150, 150); text-align:center; vertical-align: middle;" colspan="6">🐳 상단의 조건 설정 후 "조회"를 진행해주세요 🐳</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
-        <!-- <div class="jsonViewer" style="display:none; width: 500px; height: 90%; padding-left: 20px; overflow-x:hidden; overflow-y:auto; float:right;"></div> -->
-<!--        <div id="monaco" style="width: 500px; height: 90%; padding-left: 20px; overflow:hidden; float:right;"></div>-->
-<!--        <div class="imgViewer" style="width: 500px; height: 100%; overflow:auto; float:right;"></div>-->
     </div>
 </div>
 </body>

@@ -1,60 +1,64 @@
-// const path          = require("path");
-// const axios         = require('axios');
-// const fs            = require("fs");
-// const xlsx          = require("xlsx");
-
-const searchParams  = new URLSearchParams(location.search);
-// let serverNo        = window.location.hostname;
-
-/*
-// 내부망
-if(serverNo.substring(0,3) === '192') {
-  $("input[name=serverType][value=in]").prop('checked', true);
-  $("input[name=serverType][value=out]").prop('checked', false);
-  changeServerNo();
-}
-// 외부망
-else if(serverNo.substring(0,3) === '121') {
-  $("input[name=serverType][value=in]").prop('checked', false);
-  $("input[name=serverType][value=out]").prop('checked', true);
-  changeServerNo();
-}
-*/
-
 $("input[name=previewBtn][value=json]").prop('checked', true);
 $("input[name=previewBtn][value=image]").prop('checked', false);
 
-// $("select[name=serverNo] option[value='"+serverNo+"']").prop('selected', true);
+// requestId 리스트 가져오기
+let requestList = $('#requestList').val();
+requestList = JSON.parse(requestList);
+requestList = requestList.sort((a, b) => {
+  let aT = a.time.substring(0, 19);
+  aT = aT.replace('T', '').replace(/-/gi, '').replace(/:/gi, '');
 
-let serverIP = '';
-let twinPort = '';
+  let bT = b.time.substring(0, 19);
+  bT = bT.replace('T', '').replace(/-/gi, '').replace(/:/gi, '');
 
-for (let requestParam of searchParams) {
-  if(requestParam[0] === 'requestId') $('#requestId').val(requestParam[1]);
-  else if(requestParam[0] === 'schemaNm') $('#schemaNm').val(requestParam[1]);
-  else if(requestParam[0] === 'serverIP') serverIP = requestParam[0];
-  else if(requestParam[0] === 'twinPort') twinPort = requestParam[0];
-}
+  if(aT-bT > 0) return -1;
+  else if(aT-bT === 0) return aT.name - bT.name;
+  else return 1;
+});
+let reqHtml = '';
+requestList.forEach((req) => {
+  reqHtml += '<option value="'+req.name+'">'+req.name+'</option>';
+});
+$('#reqList').html(reqHtml);
+if($('#requestId').val() !== '') $("select[name=reqList] option[value='"+$('#requestId').val()+"']").prop('selected', true);
+$(document).on('change', 'select[name=reqList]', function() {
+  $('#requestId').val($('select[name=reqList] option:selected').val());
+});
+
+// schemaList 리스트 가져오기
+let schemaList = $('#schemaNmList').val();
+schemaList = JSON.parse(schemaList);
+schemaList = schemaList.sort((a, b) => {
+  let aT = a.time.substring(0, 19);
+  aT = aT.replace('T', '').replace(/-/gi, '').replace(/:/gi, '');
+
+  let bT = b.time.substring(0, 19);
+  bT = bT.replace('T', '').replace(/-/gi, '').replace(/:/gi, '');
+
+  if(aT-bT > 0) return -1;
+  else if(aT-bT === 0) return aT.name - bT.name;
+  else return 1;
+});
+let schemaHtml = '';
+schemaList.forEach((req) => {
+  schemaHtml += '<option value="'+req.name.replace('.json', '')+'">'+req.name.replace('.json', '')+'</option>';
+});
+$('#schemaList').html(schemaHtml);
+if($('#schemaNm').val() !== '') $("select[name=schemaList] option[value='"+$('#schemaNm').val()+"']").prop('selected', true);
+$(document).on('change', 'select[name=schemaList]', function() {
+  $('#schemaNm').val($('select[name=schemaList] option:selected').val());
+});
+
+
+
+
+
+
 
 if($('#requestId').val() !== '' && $('#schemaNm').val() !== '') searchResult();
 
 $('#searchBtn').on('click', function() { searchResult(); });
-$('#schemaNm').on('change', function() { searchResult(); });
 $('#pluginYn').on('change', function() { searchResult(); });
-// $('input[name=serverType]').on('change', function() { changeServerNo(); });
-
-/*
-$(document).on('change', 'input[name=previewBtn]', function() {
-  if($("input[name=previewBtn]:checked").val() === 'json') {
-    $('.imgViewer').css('display', 'none');
-    $('.jsonViewer').css('display', 'block');
-  }
-  else if($("input[name=previewBtn]:checked").val() === 'image') {
-    $('.imgViewer').css('display', 'block');
-    $('.jsonViewer').css('display', 'none');
-  }
-});
-*/
 
 // 테이블 tr 라인 배경색 변경
 $(document).on('click', '.htmlLink', function(e){
@@ -75,97 +79,15 @@ $(document).on('mouseleave', 'table#requestResult tr', function() {
   if($(this).attr('class') === 'failed') $(this).css('background-color', '#C1868E54');
 });
 
-/*
-$(document).on('click', 'tr', function(e) {
-  // $('div.jsonViewer').html('');
-
-  let requestId = $('#requestId').val();
-  let imageName = $(this).find('td[class=ellipsis]').attr('title');
-
-  // TODO tiff 파일도 화면에 뜰 수 있게 처리
-  if($(this).find('td[class=successYn]').text() === '성공') {
-    let imgReName = imageName?.substring(0, imageName?.lastIndexOf(".")) + '_' + imageName?.substring(imageName?.lastIndexOf(".")+1);
-
-    // $('div.imgViewer').html('<a class="imgHref" href="/readData/input/'+requestId+'/'+imageName+'" target="_blank"><img src="/readData/input/'+requestId+'/'+imageName+'" onLoad={changeImgSize();}></a>');
-    $('div.imgViewer').html('<a href="/readData/input/'+requestId+'/'+imageName+'" target="_blank" style="height: 0px;"><img src="/readData/output/'+requestId+'/'+imgReName+'/'+imgReName+'-001/original/'+imgReName+'-001.png'+'" onLoad={changeImgSize();}></a>');
-
-    // TODO monaco editor 사용해서 json 화면에 출력하도록 수정
-    $.ajax({
-      url : '/readData/output/'+requestId+'/'+imgReName+'/extractionResult/'+imgReName+'_extract_result.json',
-      dataType : 'json',
-      processData : false,
-      contentType : 'application/json; charset=UTF-8',
-      type : 'GET',
-      success : function(result) {
-        // $('div.jsonViewer').html('<p class="jsonResult">'+JSON.stringify(result, null, 2)+'</p>');
-
-        // 모나코 에디터 테스트
-        $('#monaco').html('');
-        require.config({paths: {'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs'}});
-        require(["vs/editor/editor.main"], () => {
-          monaco.editor.create(document.getElementById('monaco'), {
-            value: JSON.stringify(result, null, 2),
-            language: 'json',
-            theme: 'vs-dark',
-            lineNumbers: 'on',            // 줄 번호
-            glyphMargin: false,           // 체크 이미지 넣을 공간이 생김
-            vertical: 'auto',
-            horizontal: 'auto',
-            verticalScrollbarSize: 10,
-            horizontalScrollbarSize: 10,
-            scrollBeyondLastLine: false,  // 에디터상에서 스크롤이 가능하게
-            readOnly: true,              // 수정 가능 여부
-            automaticLayout: true,        // 부모 div 크기에 맞춰서 자동으로 editor 크기 맞춰줌
-            minimap: {
-              enabled: true            // 우측 스크롤 미니맵
-            },
-            lineHeight: 19
-          });
-        });
-      },
-      error : function(e) {
-        alert("처리에 실패하였습니다.", e);
-      }
-    });
-  }
-});
- */
-
-function changeImgSize() {
-  // 이미지 사이즈 조정
-  let width = $('img').width();
-  let height = $('img').height();
-
-  let imgViewerWidth = $('.imgViewer').width();
-  let imgViewerHeight = $('.imgViewer').height();
-
-  if(width > height)  $('img').css('height', imgViewerHeight);
-  else $('img').css('width', imgViewerWidth);
-}
-
 function enterKey() {
   if(window.event.keyCode == 13) searchResult();
 }
 
-/*
-function changeServerNo() {
-  if($("input[name=serverType]:checked").val() === 'in') {
-    $('#server210').val("192.168.100.210");
-    $('#server211').val("192.168.100.211");
-    $('#server170').val("192.168.100.170");
-  } else {
-    $('#server210').val("121.134.174.225");
-    $('#server211').val("121.134.174.154");
-    $('#server170').val("121.134.174.155");
-  }
-}
-*/
-
 function searchResult() {
   let requestId = $('#requestId').val();
   let schemaNm  = $('#schemaNm').val();
-  // let serverNo  = $("select[name=serverNo] option:selected").val();
-  let serverNo  = window.location.hostname;
+  let serverIP  = $('#serverIP').val();
+  let twinPort  = $('#twinPort').val();
   let pluginYn  = $('#pluginYn').is(':checked');
 
   let params = {"images":["/"+requestId+"/"]};

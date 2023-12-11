@@ -16,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @Controller
@@ -55,6 +57,49 @@ public class AiocrMainCtl {
     model.addAttribute("schemaNm", schemaNm);
     model.addAttribute("serverIP", serverIP);
     model.addAttribute("twinPort", twinPort);
+    
+    ArrayList<JSONObject> requestList = new ArrayList<>();
+    File outputFolder = new File("/data/twinreader/data/output/");
+    if(outputFolder.exists()) {
+      File[] path = outputFolder.listFiles();
+      for(int i=0; i<path.length; i++) {
+        if(path[i].isDirectory()) {
+          try {
+            JSONObject obj = new JSONObject();
+            
+            obj.put("name", path[i].getPath().replace("/data/twinreader/data/output/", ""));
+            obj.put("time", Files.getAttribute(path[i].toPath(), "creationTime").toString());
+            
+            requestList.add(obj);
+          } catch(Exception error) {
+            Logger.error("##### GET REQUEST LIST error : " + error.getMessage());
+          }
+        }
+      }
+    }
+    model.addAttribute("requestList", requestList);
+    
+    ArrayList<JSONObject> schemaList = new ArrayList<>();
+    File schemaFolder = new File("/data/twinreader/schema/");
+    if(schemaFolder.exists()) {
+      File[] path = schemaFolder.listFiles();
+      for(int i=0; i<path.length; i++) {
+        if(path[i].isFile()) {
+          try {
+            JSONObject obj = new JSONObject();
+            
+            obj.put("name", path[i].getPath().replace("/data/twinreader/schema/", ""));
+            obj.put("time", Files.getAttribute(path[i].toPath(), "creationTime").toString());
+            
+            schemaList.add(obj);
+          } catch(Exception error) {
+            Logger.error("##### GET SCHEMA LIST error : " + error.getMessage());
+          }
+        }
+      }
+    }
+    model.addAttribute("schemaList", schemaList);
+    
 
     return "demoWeb";
   }
