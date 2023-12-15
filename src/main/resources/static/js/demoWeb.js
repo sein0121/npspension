@@ -49,12 +49,6 @@ $(document).on('change', 'select[name=schemaList]', function() {
   $('#schemaNm').val($('select[name=schemaList] option:selected').val());
 });
 
-
-
-
-
-
-
 if($('#requestId').val() !== '' && $('#schemaNm').val() !== '') searchResult();
 
 $('#searchBtn').on('click', function() { searchResult(); });

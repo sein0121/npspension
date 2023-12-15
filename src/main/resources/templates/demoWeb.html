@@ -25,8 +25,8 @@
                         검색 (이미지명) : <input style="height:22.5px; cursor: text;" id="findNm"/>
                     </td>
                     <td style="width: 20%; min-width:300px; display:none;">
-                        <input id="requestId" th:value="${requestId}" readonly/>
-                        <input id="schemaNm" th:value="${schemaNm}" readonly/>
+<!--                        <input id="requestId" th:value="${requestId}" readonly/>-->
+<!--                        <input id="schemaNm" th:value="${schemaNm}" readonly/>-->
                         <input id="serverIP" th:value="${serverIP}" readonly/>
                         <input id="twinPort" th:value="${twinPort}" readonly/>
                         <input id="requestList" th:value="${requestList}" readonly/>
@@ -39,9 +39,10 @@
                     </td>-->
                     <td style="width: 20%; min-width:300px;">
                         리퀘스트ID :
-                        <select style="min-width:196.5px;" name="reqList" id="reqList">
+                        <input type="text" list="reqList" id="requestId" th:value="${requestId}">
+                        <datalist style="width:196.5px;" name="reqList" id="reqList">
                             <option value=""></option>
-                        </select>
+                        </datalist>
                     </td>
                    <!-- <td style="width: 20%; min-width:400px;">
                         스키마명 (.json 생략) : <input style="height:22.5px; cursor: text;" id="schemaNm" th:value="${schemaNm}"/>
@@ -49,9 +50,10 @@
                     </td>-->
                     <td style="width: 20%; min-width:300px;">
                         스키마명 (.json 생략) :
-                        <select style="min-width:196.5px;" name="schemaList" id="schemaList">
+                        <input type="text" list="schemaList" id="schemaNm" th:value="${schemaNm}">
+                        <datalist style="width:196.5px;" name="schemaList" id="schemaList">
                             <option value=""></option>
-                        </select>
+                        </datalist>
                         <button class="btn" id="searchBtn">조회</button>
                     </td>
                 </tr>
