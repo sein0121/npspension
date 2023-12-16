@@ -38,7 +38,7 @@ public class AiocrSyncCtl {
   @ResponseBody
   public HashMap<String, Object> aiocrSyncLoad(
       @RequestParam(value = "requestId") String requestId
-      , @RequestParam(value = "format", required = false) String format
+      , @RequestParam(value = "format") String format
       , @RequestParam(value = "ocrFiles") MultipartFile[] ocrFiles
       , HttpServletRequest request) throws Exception {
     

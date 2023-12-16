@@ -109,7 +109,7 @@ public class AiocrMainCtl {
   public HashMap<String, Object> loadAiocrProgram(
       @RequestParam(value = "requestId") String requestId
       , @RequestParam(value = "callbackUrl") String callbackUrl
-      , @RequestParam(value = "format", required = false) String format
+      , @RequestParam(value = "format") String format
       , @RequestParam(value = "ocrFiles") MultipartFile[] ocrFiles
       , HttpServletRequest request) throws Exception {
     
