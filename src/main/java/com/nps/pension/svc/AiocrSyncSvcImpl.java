@@ -17,6 +17,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
@@ -85,16 +86,16 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     else if(reqIdCnt == 0 && "exis".equals(type)) throw new Exception("존재하지 않는 Request ID 입니다.");
     
   }
-  
+
   /**
    * 요청받은 파일 적재 후 분석 요청
    * @param requestId
-   * @param ocrFiles
+   * @param filename
    * @param request
    * @throws Exception
    */
-  public void setOcrProcess(String requestId, String format, MultipartFile[] ocrFiles, HttpServletRequest request) throws Exception {
-    
+  public void setOcrProcess(String requestId, String format, HttpServletRequest request) throws Exception {
+
     // 현재 시간
     LocalDateTime now = LocalDateTime.now();
     String formatNow  = now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -118,24 +119,46 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     
     // 2. 요청에 대한 DB NPSPEN0001 INSERT
     Logger.info("2. 요청에 대한 DB NPSPEN0001 INSERT");
-    sqlSessionTemplate.insert("NpsPen0001Sql.insertNpsPen0001", npsPenHistoryDTO);
-    
+
     // 3. 전달받은 파일 INPUT 경로에 저장
     Logger.info("3. 전달받은 파일 INPUT 경로에 저장");
     String inputPath = "/data/twinreader/data/input/" + requestId + "/";
-    for (MultipartFile ocrFile : ocrFiles) {
-      String fileName = ocrFile.getOriginalFilename();
+//    for (MultipartFile ocrFile : filename) {
+//      String fileName1 = ocrFile.getOriginalFilename();
+//      File saveDir = new File(inputPath + fileName1);
+//
+//      // 4. 디렉토리가 없는 경우 디렉토리 생성
+//      Logger.info("4. 디렉토리가 없는 경우 디렉토리 생성");
+//      if(!saveDir.getParentFile().exists()) saveDir.getParentFile().mkdirs();
+//      ocrFile.transferTo(saveDir);
+//
+//      // 5. 요청에 대한 DB NPSPEN0002 INSERT
+//      Logger.info("5. 요청에 대한 DB NPSPEN0002 INSERT");
+//      npsPenHistoryDTO.setFileNm(fileName1);
+//      sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPenHistoryDTO);
+//    }
+    MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+    Iterator<String> fileNames = multipartRequest.getFileNames();
+    while(fileNames.hasNext()) {
+
+      String fileName = fileNames.next();
+      MultipartFile mFile = multipartRequest.getFile(fileName);
+
       File saveDir = new File(inputPath + fileName);
-      
-      // 4. 디렉토리가 없는 경우 디렉토리 생성
-      Logger.info("4. 디렉토리가 없는 경우 디렉토리 생성");
-      if(!saveDir.getParentFile().exists()) saveDir.getParentFile().mkdirs();
-      ocrFile.transferTo(saveDir);
-      
-      // 5. 요청에 대한 DB NPSPEN0002 INSERT
-      Logger.info("5. 요청에 대한 DB NPSPEN0002 INSERT");
-      npsPenHistoryDTO.setFileNm(fileName);
-      sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPenHistoryDTO);
+
+      if (mFile.getSize() != 0) // FIle null Check
+      {
+        // 4. 디렉토리가 없는 경우 디렉토리 생성
+        Logger.info("4. 디렉토리가 없는 경우 디렉토리 생성");
+        if(!saveDir.getParentFile().exists()) saveDir.getParentFile().mkdirs();
+        mFile.transferTo(saveDir);
+
+        // 5. 요청에 대한 DB NPSPEN0002 INSERT
+        Logger.info("5. 요청에 대한 DB NPSPEN0002 INSERT");
+        npsPenHistoryDTO.setFileNm(fileName);
+        sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPenHistoryDTO);
+
+      }
     }
     
     // 6. 트윈리더 DB정보 삭제 API 호출 - /twinreader-mgr-service/api/v1/analysis/deleteImageData
@@ -201,7 +224,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
       throw new Exception("AIOCR Analysis PROCESS FAILED");
     }
   }
-  
+
   /**
    * 분석 완료 후 OUTPUT 경로에서 결과 JSON 가져와 불필요한 데이터 제거
    * @param requestId

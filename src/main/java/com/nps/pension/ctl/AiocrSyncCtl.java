@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -33,15 +34,16 @@ public class AiocrSyncCtl {
   
   @Value("${aipct.pension.sync}")
   Boolean syncYn;
-  
+
   @RequestMapping(value = "/aiocrSyncLoad", method = RequestMethod.POST)
   @ResponseBody
   public HashMap<String, Object> aiocrSyncLoad(
       @RequestParam(value = "requestId") String requestId
       , @RequestParam(value = "format") String format
-      , @RequestParam(value = "ocrFiles") MultipartFile[] ocrFiles
+//      , @RequestParam(value = "filename") MultipartFile[] filename
       , HttpServletRequest request) throws Exception {
-    
+
+
     Logger.info("##### aiocrSyncLoad START ##### \t requestId : " + requestId);
     HashMap<String, Object> result = new HashMap<String, Object>();
     
@@ -53,8 +55,9 @@ public class AiocrSyncCtl {
       aiocrSyncSvc.checkRequestId(requestId, "dupl");
       
       // 3. 파일 INPUT 경로에 추가 후 분석 요청
-      aiocrSyncSvc.setOcrProcess(requestId, format, ocrFiles, request);
-      
+      aiocrSyncSvc.setOcrProcess(requestId, format, request);
+//      aiocrSyncSvc.setOcrProcess(requestId, format, filename, request);
+
       // 4. 트윈리더 처리 완료 여부 조회 (PRO_STATUS)
       aiocrSyncSvc.getProStatus(requestId);
       

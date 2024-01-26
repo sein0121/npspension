@@ -80,11 +80,11 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
    * 요청받은 파일 적재 후 분석 요청
    * @param requestId
    * @param callbackUrl
-   * @param ocrFiles
+   * @param filename
    * @param request
    * @throws Exception
    */
-  public void setOcrProcess(String requestId, String callbackUrl, String format, MultipartFile[] ocrFiles, HttpServletRequest request) throws Exception {
+  public void setOcrProcess(String requestId, String callbackUrl, String format, MultipartFile[] filename, HttpServletRequest request) throws Exception {
     
     // 현재 시간
     LocalDateTime now = LocalDateTime.now();
@@ -112,9 +112,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
     // 3. 전달받은 파일 INPUT 경로에 저장
     Logger.info("3. 전달받은 파일 INPUT 경로에 저장");
     String inputPath = "/data/twinreader/data/input/" + requestId + "/";
-    for (MultipartFile ocrFile : ocrFiles) {
-      String fileName = ocrFile.getOriginalFilename();
-      File saveDir = new File(inputPath + fileName);
+    for (MultipartFile ocrFile : filename) {
+      String fileName1 = ocrFile.getOriginalFilename();
+      File saveDir = new File(inputPath + fileName1);
       
       // 4. 디렉토리가 없는 경우 디렉토리 생성
       Logger.info("4. 디렉토리가 없는 경우 디렉토리 생성");
@@ -123,7 +123,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       
       // 5. 요청에 대한 DB NPSPEN0002 INSERT
       Logger.info("5. 요청에 대한 DB NPSPEN0002 INSERT");
-      npsPenHistoryDTO.setFileNm(fileName);
+      npsPenHistoryDTO.setFileNm(fileName1);
       sqlSessionTemplate.insert("NpsPen0002Sql.insertNpsPen0002", npsPenHistoryDTO);
     }
     

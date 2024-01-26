@@ -110,7 +110,7 @@ public class AiocrMainCtl {
       @RequestParam(value = "requestId") String requestId
       , @RequestParam(value = "callbackUrl") String callbackUrl
       , @RequestParam(value = "format") String format
-      , @RequestParam(value = "ocrFiles") MultipartFile[] ocrFiles
+      , @RequestParam(value = "filename") MultipartFile[] filename
       , HttpServletRequest request) throws Exception {
     
     Logger.info("##### loadAiocrProgram START ##### \t requestId : " + requestId);
@@ -124,7 +124,7 @@ public class AiocrMainCtl {
       aiocrMainSvc.checkRequestId(requestId);
 
       // 3. 요청받은 파일 처리
-      aiocrMainSvc.setOcrProcess(requestId, callbackUrl, format, ocrFiles, request);
+      aiocrMainSvc.setOcrProcess(requestId, callbackUrl, format, filename, request);
       
       result.put("rsp_code", HttpStatus.OK);
       result.put("rsp_msg", "success");
