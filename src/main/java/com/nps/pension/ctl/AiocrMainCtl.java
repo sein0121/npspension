@@ -126,12 +126,12 @@ public class AiocrMainCtl {
       // 3. 요청받은 파일 처리
       aiocrMainSvc.setOcrProcess(requestId, callbackUrl, format, filename, request);
       
-      result.put("rsp_code", HttpStatus.OK);
-      result.put("rsp_msg", "success");
+      result.put("resultCode", HttpStatus.OK);
+      result.put("resultMessage", "success");
     } catch(Exception error) {
       Logger.error("##### loadAiocrProgram error : " + error.getMessage());
-      result.put("rsp_code", HttpStatus.BAD_REQUEST);
-      result.put("rsp_msg", error.getMessage());
+      result.put("resultCode", HttpStatus.BAD_REQUEST);
+      result.put("resultMessage", error.getMessage());
     }
     
     Logger.info("##### loadAiocrProgram END #####");
@@ -155,13 +155,13 @@ public class AiocrMainCtl {
       Logger.info("##### reqBody : " + reqBody);
       JSONArray ocrResult = aiocrMainSvc.getOcrResult(requestId, reqBody, request);
       
-      result.put("rsp_code", HttpStatus.OK);
-      result.put("rsp_msg", "success");
+      result.put("resultCode", HttpStatus.OK);
+      result.put("resultMessage", "success");
       result.put("result", ocrResult);
     } catch(Exception error) {
       Logger.error("##### getOcrResult error : " + error.getMessage());
-      result.put("rsp_code", HttpStatus.BAD_REQUEST);
-      result.put("rsp_msg", error.getMessage());
+      result.put("resultCode", HttpStatus.BAD_REQUEST);
+      result.put("resultMessage", error.getMessage());
     }
     
     // 2. 항목 추출 최종 결과 고객사 전달
@@ -192,8 +192,8 @@ public class AiocrMainCtl {
     Logger.info("##### callbackTest START #####");
     HashMap<String, Object> result = new HashMap<String, Object>();
     
-    result.put("rsp_code", HttpStatus.OK);
-    result.put("rsp_msg", "SUCCESS");
+    result.put("resultCode", HttpStatus.OK);
+    result.put("resultMessage", "SUCCESS");
     result.put("request", request);
     
     Logger.info("##### callbackTest END #####");

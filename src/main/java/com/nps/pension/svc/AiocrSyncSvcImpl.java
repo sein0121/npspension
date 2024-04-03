@@ -119,6 +119,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
     
     // 2. 요청에 대한 DB NPSPEN0001 INSERT
     Logger.info("2. 요청에 대한 DB NPSPEN0001 INSERT");
+    sqlSessionTemplate.insert("NpsPen0001Sql.insertNpsPen0001", npsPenHistoryDTO);
 
     // 3. 전달받은 파일 INPUT 경로에 저장
     Logger.info("3. 전달받은 파일 INPUT 경로에 저장");

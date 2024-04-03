@@ -64,13 +64,13 @@ public class AiocrSyncCtl {
       // 5. 항목 추출 결과 OUTPUT 경로에서 가져와 수정
       JSONArray ocrResult = aiocrSyncSvc.getOcrResult(requestId, request);
       
-      result.put("rsp_code", HttpStatus.OK);
-      result.put("rsp_msg", "success");
+      result.put("resultCode", HttpStatus.OK);
+      result.put("resultMessage", "success");
       result.put("result", ocrResult);
     } catch(Exception error) {
       Logger.error("##### aiocrSyncLoad error : " + error.getMessage());
-      result.put("rsp_code", HttpStatus.BAD_REQUEST);
-      result.put("rsp_msg", error.getMessage());
+      result.put("resultCode", HttpStatus.BAD_REQUEST);
+      result.put("resultMessage", error.getMessage());
     }
     
     // 5. 서버에 저장 된 파일 삭제 (INPUT, OUTPUT)
@@ -125,13 +125,13 @@ public class AiocrSyncCtl {
       // 2. 항목 추출 결과 OUTPUT 경로에서 가져와 수정
       JSONArray ocrResult = aiocrSyncSvc.getOcrResult(requestId, request);
       
-      result.put("rsp_code", HttpStatus.OK);
-      result.put("rsp_msg", "success");
+      result.put("resultMCode", HttpStatus.OK);
+      result.put("resultMessage", "success");
       result.put("result", ocrResult);
     } catch(Exception error) {
       Logger.error("##### aiocrSyncLoad error : " + error.getMessage());
-      result.put("rsp_code", HttpStatus.BAD_REQUEST);
-      result.put("rsp_msg", error.getMessage());
+      result.put("resultMCode", HttpStatus.BAD_REQUEST);
+      result.put("resultMessage", error.getMessage());
     }
     
     // 3. 서버에 저장 된 파일 삭제 (INPUT, OUTPUT)
