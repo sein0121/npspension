@@ -345,7 +345,8 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
       
       String imagePath    = (String) analyObj.get("path");
       String imageName    = imagePath.replace("/" + requestId + "/", "");
-      String tmpPath      = imagePath.substring(0, imagePath.lastIndexOf(".")) + "_" + imagePath.substring(imagePath.lastIndexOf(".")+1);
+      String tmpPath      = imagePath.substring(0, imagePath.lastIndexOf(".")) + "_" + imagePath.substring(imagePath.lastIndexOf(".")+1).toLowerCase();
+//      Logger.info("\n1️⃣1️⃣"+imagePath+"\n2️⃣2️⃣2️⃣" +imageName+"\n3️⃣3️⃣3️⃣3️⃣"+tmpPath);
       
       String filePath     = "/data/twinreader/data/output" + tmpPath + tmpPath.replace(requestId, "extractionResult") + "_extract_result.json";
       
