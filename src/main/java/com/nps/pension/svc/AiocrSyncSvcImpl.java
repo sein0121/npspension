@@ -170,7 +170,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
       jsonArray.add("/"+requestId+"/");
       jsonObject.put("images", jsonArray);
       JSONObject delApiResult = webClientUtil.delete(
-          "http://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/deleteImageData"
+          "http://twinreader-mgr-service:8081/api/v1/analysis/deleteImageData"
           , jsonObject
           , JSONObject.class
       );
@@ -193,13 +193,13 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("images", analysisArr);
         analysisObj.put("requestId", requestId);
-        analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/setProStatus");
+        analysisObj.put("callbackUrl", "https://"+"nps-pension"+":"+port+"/api/v1/aiocr/setProStatus");
         JSONObject loadAnalysis = webClientUtil.post(
-            "http://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/inference/reqId"
+            "http://twinreader-mgr-service:8081/api/v1/analysis/inference/reqId"
             , analysisObj
             , JSONObject.class
         );
-        
+
         if(!(boolean)loadAnalysis.get("success")) throw new Exception("Twinreader ANALYSIS FAILED");
       }
       // 트윈리더 2.3 버전 - /twinreader-mgr-service/api/v2/flow/twrd
@@ -208,12 +208,12 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("pathList", analysisArr);
         analysisObj.put("requestID", requestId);
-        analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/setProStatus");
+        analysisObj.put("callbackUrl", "https://"+"nps-pension"+":"+port+"/api/v1/aiocr/setProStatus");
         analysisObj.put("pipelineName", pipelineName);
         analysisObj.put("clsfGroupID", clsfGroupID);
         
         JSONObject loadAnalysis = webClientUtil.post(
-            "http://"+serverIP+twinPort+"/twinreader-mgr-service/api/v2/flow/twrd"
+            "http://twinreader-mgr-service:8081/api/v2/flow/twrd"
             , analysisObj
             , JSONObject.class
         );
@@ -322,7 +322,7 @@ public class AiocrSyncSvcImpl implements AiocrSyncSvc {
       jsonArray.add("/"+requestId+"/");
       jsonObject.put("images", jsonArray);
       analyArr = webClientUtil.post(
-          "http://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/category"
+          "http://twinreader-mgr-service:8081/api/v1/analysis/category"
           , jsonObject
           , JSONArray.class
       );

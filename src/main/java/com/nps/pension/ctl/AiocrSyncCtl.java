@@ -35,7 +35,8 @@ public class AiocrSyncCtl {
   @Value("${aipct.pension.sync}")
   Boolean syncYn;
 
-  @RequestMapping(value = "/aiocrSyncLoad", method = RequestMethod.POST)
+//  @RequestMapping(value = "/aiocrSyncLoad", method = RequestMethod.POST)
+  @PostMapping(value = "/aiocrSyncLoad")
   @ResponseBody
   public HashMap<String, Object> aiocrSyncLoad(
       @RequestParam(value = "requestId") String requestId
