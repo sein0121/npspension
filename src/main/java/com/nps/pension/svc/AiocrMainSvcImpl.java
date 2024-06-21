@@ -135,7 +135,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
       jsonArray.add("/"+requestId+"/");
       jsonObject.put("images", jsonArray);
       JSONObject delApiResult = webClientUtil.delete(
-          "http://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/deleteImageData"
+          "https://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/deleteImageData"
           , jsonObject
           , JSONObject.class
       );
@@ -157,9 +157,9 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("images", analysisArr);
         analysisObj.put("requestId", requestId);
-        analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/getOcrResult");
+        analysisObj.put("callbackUrl", "https://"+serverIP+":"+port+"/api/v1/aiocr/getOcrResult");
         JSONObject loadAnalysis = webClientUtil.post(
-            "http://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/inference/reqId"
+            "https://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/inference/reqId"
             , analysisObj
             , JSONObject.class
         );
@@ -170,12 +170,12 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         analysisArr.add("/"+requestId+"/");
         analysisObj.put("pathList", analysisArr);
         analysisObj.put("requestID", requestId);
-        analysisObj.put("callbackUrl", "http://"+serverIP+":"+port+"/api/v1/aiocr/getOcrResult");
+        analysisObj.put("callbackUrl", "https://"+serverIP+":"+port+"/api/v1/aiocr/getOcrResult");
         analysisObj.put("pipelineName", pipelineName);
         analysisObj.put("clsfGroupID", clsfGroupID);
         
         JSONObject loadAnalysis = webClientUtil.post(
-            "http://"+serverIP+twinPort+"/twinreader-mgr-service/api/v2/flow/twrd"
+            "https://"+serverIP+twinPort+"/twinreader-mgr-service/api/v2/flow/twrd"
             , analysisObj
             , JSONObject.class
         );
@@ -319,7 +319,7 @@ public class AiocrMainSvcImpl implements  AiocrMainSvc{
         jsonArray.add(imagePath);
         jsonObject.put("images", jsonArray);
         JSONArray analysisResultArr = webClientUtil.post(
-            "http://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/category"
+            "https://"+serverIP+twinPort+"/twinreader-mgr-service/api/v1/analysis/category"
             , jsonObject
             , JSONArray.class
         );

@@ -4,10 +4,10 @@ metadata:
   name: nps-pension
 spec:
   externalIPs:
-  - 192.168.100.210
+    - 192.168.100.211
   ports:
-  - port: 9100
-    targetPort: 9000
+    - port: 9100
+      targetPort: 9000
   selector:
     app: nps-pension
 ---
@@ -29,13 +29,13 @@ spec:
         app: nps-pension
     spec:
       containers:
-      - name: nps-pension
-        image: nps-pension:0.1
-        volumeMounts:
-        - name: files-volume
-          mountPath: /data/twinreader
+        - name: nps-pension
+          image: nps-pension:0.1
+          volumeMounts:
+            - name: files-volume
+              mountPath: /data/twinreader
       volumes:
-      - name: files-volume
-        hostPath:
-          path: /data/twinreader
-          type: Directory
+        - name: files-volume
+          hostPath:
+            path: /data/twinreader
+            type: Directory
