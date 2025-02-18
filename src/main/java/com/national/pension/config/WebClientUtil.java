@@ -1,4 +1,4 @@
-package com.nps.pension.config;
+package com.national.pension.config;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

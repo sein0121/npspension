@@ -1,4 +1,4 @@
-package com.nps.pension;
+package com.national.pension;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

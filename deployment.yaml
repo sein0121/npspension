@@ -4,7 +4,7 @@ metadata:
   name: nps-pension
 spec:
   externalIPs:
-    - 192.168.100.211
+    - 192.168.100.XXX
   ports:
     - port: 9100
       targetPort: 9000

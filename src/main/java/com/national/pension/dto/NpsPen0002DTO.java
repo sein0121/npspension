@@ -1,4 +1,4 @@
-package com.nps.pension.dto;
+package com.national.pension.dto;
 
 import lombok.Data;
 import lombok.Getter;

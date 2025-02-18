@@ -1,4 +1,4 @@
-package com.nps.pension.config;
+package com.national.pension.config;
 
 import io.netty.channel.ChannelOption;
 import org.springframework.context.annotation.Bean;
